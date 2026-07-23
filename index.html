@@ -155,7 +155,7 @@
 <header class="top">
   <div class="top-in">
     <svg class="leaf" viewBox="0 0 24 24" aria-hidden="true"><path fill="var(--maple)" d="M12 1.5l1.8 3.6 2.4-1.2-.7 3.9 3.4-.6-1.7 3 3.3 1.3-2.7 2 2 2.6-3.7.3.5 3.6-3.4-1.6-.4 3.9L12 20l-.8 2.3-.4-3.9-3.4 1.6.5-3.6-3.7-.3 2-2.6-2.7-2 3.3-1.3-1.7-3 3.4.6-.7-3.9 2.4 1.2z"/></svg>
-    <div class="wordmark">Canada Elective Tracker<small>Nehal · UK to Canada · visiting elective applications</small></div>
+    <div class="wordmark">Canada Elective Tracker<small>Nehel · UK to Canada · visiting elective applications</small></div>
     <div class="top-actions"><span id="sync"></span>
       <button class="ghost" id="syncBtn" title="Enter the PIN to sync this device with your saved progress" hidden>Sync</button>
       <button class="ghost" id="exportBtn" title="Download your progress as a backup file">Export</button>
@@ -217,7 +217,7 @@
 <div id="gate">
   <div class="gate-box">
     <svg class="leaf" viewBox="0 0 24 24" aria-hidden="true" style="width:26px;height:26px"><path fill="var(--maple)" d="M12 1.5l1.8 3.6 2.4-1.2-.7 3.9 3.4-.6-1.7 3 3.3 1.3-2.7 2 2 2.6-3.7.3.5 3.6-3.4-1.6-.4 3.9L12 20l-.8 2.3-.4-3.9-3.4 1.6.5-3.6-3.7-.3 2-2.6-2.7-2 3.3-1.3-1.7-3 3.4.6-.7-3.9 2.4 1.2z"/></svg>
-    <h2 class="serif">Nehal's elective tracker</h2>
+    <h2 class="serif">Nehel's elective tracker</h2>
     <p>This tracker is private. Enter your password to open it.</p>
     <input type="password" id="pinInput" autocomplete="current-password" aria-label="Password" placeholder="Password">
     <div class="gate-row"><input type="checkbox" id="pinRemember" checked style="width:15px;height:15px"><label for="pinRemember">Keep me signed in on this device</label></div>
@@ -462,7 +462,7 @@ async function unlock(pin,remember,silent){
 function openGate(){const g=document.getElementById("gate");document.getElementById("pinErr").textContent="";g.hidden=false;const i=document.getElementById("pinInput");i.value="";i.focus();}
 async function boot(){
   // Private tracker: the styled gate covers the whole page until the correct password is entered.
-  // A remembered device auto-unlocks so Nehal only signs in once per device.
+  // A remembered device auto-unlocks so Nehel only signs in once per device.
   const gate=document.getElementById("gate");
   const go=()=>unlock(document.getElementById("pinInput").value.trim(),document.getElementById("pinRemember").checked,false);
   document.getElementById("pinGo").addEventListener("click",go);
@@ -732,7 +732,7 @@ boot();
 (function cycleGreeting(){
   const el=document.getElementById("greeting");
   if(!el)return;
-  const N="Nehal";
+  const N="Nehel";
   // Broad multilingual set. Deliberately excludes Hebrew, Hindi, Indonesian, Polish, Romanian.
   const greetings=[
     "Hi, "+N,            // English
