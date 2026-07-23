@@ -1,0 +1,641 @@
+<title>Canada Elective Tracker</title>
+<style>
+  :root{
+    --paper:#FBFAF7; --panel:#FFFFFF; --ink:#1C2430; --muted:#5C6672;
+    --line:#E7E4DC; --line-soft:#F0EEE7; --maple:#B01E2E; --maple-soft:#F7E9EA;
+    --open:#1F7A57; --open-soft:#E7F2ED; --cond:#A66A00; --cond-soft:#F7EFDF;
+    --watch:#2F6FA8; --watch-soft:#E8F0F7; --closed:#8A8F98; --closed-soft:#EFEFEC;
+    --land:#EFECE4; --land-line:#DCD8CC; --water:#F6F4EF;
+    --shadow:0 10px 30px rgba(28,36,48,.08);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --paper:#12161C; --panel:#1A2028; --ink:#E8E6E1; --muted:#9AA3AD;
+      --line:#2A313B; --line-soft:#232932; --maple:#E0455A; --maple-soft:#3A2026;
+      --open:#4CC69A; --open-soft:#1D2F28; --cond:#E3A63C; --cond-soft:#332A18;
+      --watch:#6FA8DC; --watch-soft:#1C2938; --closed:#7C838C; --closed-soft:#242930;
+      --land:#222933; --land-line:#303945; --water:#161B22;
+      --shadow:0 10px 30px rgba(0,0,0,.35);
+    }
+  }
+  :root[data-theme="light"]{
+    --paper:#FBFAF7; --panel:#FFFFFF; --ink:#1C2430; --muted:#5C6672;
+    --line:#E7E4DC; --line-soft:#F0EEE7; --maple:#B01E2E; --maple-soft:#F7E9EA;
+    --open:#1F7A57; --open-soft:#E7F2ED; --cond:#A66A00; --cond-soft:#F7EFDF;
+    --watch:#2F6FA8; --watch-soft:#E8F0F7; --closed:#8A8F98; --closed-soft:#EFEFEC;
+    --land:#EFECE4; --land-line:#DCD8CC; --water:#F6F4EF;
+    --shadow:0 10px 30px rgba(28,36,48,.08);
+  }
+  :root[data-theme="dark"]{
+    --paper:#12161C; --panel:#1A2028; --ink:#E8E6E1; --muted:#9AA3AD;
+    --line:#2A313B; --line-soft:#232932; --maple:#E0455A; --maple-soft:#3A2026;
+    --open:#4CC69A; --open-soft:#1D2F28; --cond:#E3A63C; --cond-soft:#332A18;
+    --watch:#6FA8DC; --watch-soft:#1C2938; --closed:#7C838C; --closed-soft:#242930;
+    --land:#222933; --land-line:#303945; --water:#161B22;
+    --shadow:0 10px 30px rgba(0,0,0,.35);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{background:var(--paper);color:var(--ink);font:15px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased}
+  .serif{font-family:"Iowan Old Style","Palatino Linotype",Georgia,'Times New Roman',serif}
+  .mono{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-variant-numeric:tabular-nums}
+
+  header.top{position:sticky;top:0;z-index:40;background:color-mix(in srgb,var(--paper) 88%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+  .top-in{max-width:1180px;margin:0 auto;padding:14px 24px;display:flex;align-items:center;gap:14px}
+  .leaf{width:22px;height:22px;flex:none}
+  .wordmark{font-weight:600;letter-spacing:.01em}
+  .wordmark small{display:block;font-size:11px;color:var(--muted);font-weight:500;letter-spacing:.08em;text-transform:uppercase}
+  .top-actions{margin-left:auto;display:flex;gap:8px}
+  button.ghost{background:none;border:1px solid var(--line);color:var(--ink);border-radius:8px;padding:7px 12px;font:inherit;font-size:13px;cursor:pointer}
+  button.ghost:hover{border-color:var(--muted)}
+  button:focus-visible,a:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--maple);outline-offset:2px}
+
+  main{max-width:1180px;margin:0 auto;padding:28px 24px 80px}
+
+  .ribbon{display:flex;flex-wrap:wrap;align-items:center;gap:10px 18px;background:var(--maple-soft);border:1px solid color-mix(in srgb,var(--maple) 25%,transparent);border-radius:12px;padding:12px 18px;margin-bottom:26px}
+  .ribbon b{color:var(--maple)}
+  .ribbon .count{font-size:13px;color:var(--muted)}
+
+  h1{font-size:clamp(26px,4vw,36px);line-height:1.15;margin:0 0 6px;text-wrap:balance;font-weight:600}
+  .sub{color:var(--muted);max-width:64ch;margin:0 0 26px}
+
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:30px}
+  .stat{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+  .stat .n{font-size:26px;font-weight:600}
+  .stat .l{font-size:11.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+  .bar{height:5px;border-radius:3px;background:var(--line-soft);margin-top:10px;overflow:hidden}
+  .bar i{display:block;height:100%;border-radius:3px;background:var(--open);transition:width .4s}
+
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);overflow:hidden;margin-bottom:34px}
+  .panel-head{display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:16px 20px;border-bottom:1px solid var(--line)}
+  .panel-head h2{font-size:17px;margin:0;font-weight:600}
+  .legend{display:flex;flex-wrap:wrap;gap:12px;margin-left:auto;font-size:12px;color:var(--muted)}
+  .legend span{display:inline-flex;align-items:center;gap:6px}
+  .dot{width:9px;height:9px;border-radius:50%;display:inline-block}
+  #mapwrap{position:relative;background:var(--water)}
+  #map{display:block;width:100%;height:auto}
+  .marker{cursor:pointer}
+  .marker circle.core{transition:r .15s}
+  .marker:hover circle.core, .marker:focus circle.core{r:7}
+  #tip{position:absolute;pointer-events:none;background:var(--panel);border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow);padding:10px 13px;font-size:13px;max-width:250px;opacity:0;transition:opacity .12s;z-index:30}
+  #tip .t-name{font-weight:600}
+  #tip .t-row{color:var(--muted);margin-top:3px}
+  .pill{display:inline-block;font-size:11px;font-weight:600;letter-spacing:.04em;border-radius:20px;padding:2px 9px}
+
+  .tiergrp{margin:26px 0 8px;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+  .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:12px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:15px 17px;cursor:pointer;text-align:left;font:inherit;color:inherit;width:100%}
+  .card:hover{border-color:var(--muted)}
+  .card .c-top{display:flex;align-items:baseline;gap:9px}
+  .card h3{margin:0;font-size:15.5px;font-weight:600;flex:1}
+  .card .city{font-size:12px;color:var(--muted)}
+  .card .c-head{margin:7px 0 9px;font-size:13px;color:var(--muted);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .card .c-foot{display:flex;align-items:center;gap:10px;font-size:12.5px;color:var(--muted)}
+  .ringtxt{font-weight:600;color:var(--ink)}
+
+  /* Drawer */
+  #ovl{position:fixed;inset:0;background:rgba(15,20,26,.45);opacity:0;pointer-events:none;transition:opacity .2s;z-index:50}
+  #ovl.on{opacity:1;pointer-events:auto}
+  #drawer{position:fixed;top:0;right:0;bottom:0;width:min(560px,100%);background:var(--paper);border-left:1px solid var(--line);z-index:60;transform:translateX(102%);transition:transform .25s ease;display:flex;flex-direction:column}
+  #drawer.on{transform:none}
+  @media (prefers-reduced-motion:reduce){#drawer,#ovl,.bar i{transition:none}}
+  .d-head{padding:20px 24px 0}
+  .d-head .row{display:flex;align-items:center;gap:10px}
+  .d-head h2{font-size:22px;margin:6px 0 2px;font-weight:600}
+  .d-head .city{color:var(--muted);font-size:13px}
+  .d-close{margin-left:auto}
+  .tabs{display:flex;gap:2px;padding:14px 24px 0;border-bottom:1px solid var(--line)}
+  .tab{background:none;border:none;border-bottom:2px solid transparent;padding:8px 12px;font:inherit;font-size:13.5px;color:var(--muted);cursor:pointer}
+  .tab[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--maple);font-weight:600}
+  .d-body{overflow-y:auto;padding:20px 24px 40px;flex:1}
+  .d-body h4{font-size:12px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin:22px 0 8px}
+  .d-body h4:first-child{margin-top:0}
+  .kv{display:grid;grid-template-columns:130px 1fr;gap:6px 14px;font-size:13.5px}
+  .kv dt{color:var(--muted)}
+  .kv dd{margin:0}
+  .task{display:flex;gap:11px;align-items:flex-start;padding:9px 0;border-bottom:1px solid var(--line-soft)}
+  .task input{margin-top:3px;accent-color:var(--open);width:16px;height:16px;flex:none}
+  .task label{cursor:pointer;flex:1}
+  .task .due{font-size:12px;color:var(--muted)}
+  .task.done label{color:var(--muted);text-decoration:line-through;text-decoration-color:color-mix(in srgb,var(--muted) 50%,transparent)}
+  .qlist li{margin-bottom:7px}
+  .contact-box{border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:10px;font-size:13.5px;background:var(--panel)}
+  .contact-box b{display:block}
+  .contact-box .mono{font-size:12.5px}
+  .logrow{font-size:13px;padding:7px 0;border-bottom:1px solid var(--line-soft)}
+  .logrow .mono{color:var(--muted);margin-right:8px}
+  .logform{display:flex;gap:8px;margin-top:10px}
+  .logform input{flex:1;font:inherit;font-size:13px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--ink)}
+  pre.email{white-space:pre-wrap;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px;font-size:12.8px;line-height:1.5;font-family:ui-monospace,Menlo,Consolas,monospace}
+  .btnrow{display:flex;gap:8px;margin-top:10px}
+  button.solid{background:var(--maple);color:#fff;border:none;border-radius:8px;padding:8px 14px;font:inherit;font-size:13px;cursor:pointer}
+  .note{font-size:12.5px;color:var(--muted)}
+  .warn{background:var(--cond-soft);border:1px solid color-mix(in srgb,var(--cond) 30%,transparent);border-radius:10px;padding:10px 13px;font-size:13px;margin-bottom:14px}
+  #gate{position:fixed;inset:0;z-index:100;background:var(--paper);display:flex;align-items:center;justify-content:center;padding:24px}
+  .gate-box{background:var(--panel);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);padding:34px 36px;max-width:380px;width:100%}
+  .gate-box h2{margin:12px 0 6px;font-size:21px}
+  .gate-box p{color:var(--muted);font-size:13.5px;margin:0 0 18px}
+  .gate-box input[type=password]{width:100%;font:inherit;font-size:20px;letter-spacing:.35em;text-align:center;padding:11px;border:1px solid var(--line);border-radius:10px;background:var(--paper);color:var(--ink)}
+  .gate-row{display:flex;align-items:center;gap:8px;margin:14px 0;font-size:13px;color:var(--muted)}
+  .gate-box button.solid{width:100%;padding:11px;font-size:14.5px}
+  .gate-err{color:var(--maple);font-size:13px;min-height:18px;margin-top:10px}
+  .gate-alt{margin-top:14px;font-size:12.5px;color:var(--muted);text-align:center}
+  .gate-alt a{color:var(--muted)}
+  #sync{font-size:12px;color:var(--muted);align-self:center;white-space:nowrap}
+  footer{max-width:1180px;margin:0 auto;padding:0 24px 40px;color:var(--muted);font-size:12.5px}
+</style>
+
+<header class="top">
+  <div class="top-in">
+    <svg class="leaf" viewBox="0 0 24 24" aria-hidden="true"><path fill="var(--maple)" d="M12 1.5l1.8 3.6 2.4-1.2-.7 3.9 3.4-.6-1.7 3 3.3 1.3-2.7 2 2 2.6-3.7.3.5 3.6-3.4-1.6-.4 3.9L12 20l-.8 2.3-.4-3.9-3.4 1.6.5-3.6-3.7-.3 2-2.6-2.7-2 3.3-1.3-1.7-3 3.4.6-.7-3.9 2.4 1.2z"/></svg>
+    <div class="wordmark">Canada Elective Tracker<small>Nehal · UK to Canada · visiting elective applications</small></div>
+    <div class="top-actions"><span id="sync"></span>
+      <button class="ghost" id="exportBtn" title="Download your progress as a backup file">Export</button>
+      <button class="ghost" id="importBtn" title="Restore progress from a backup file">Import</button>
+      <input type="file" id="importFile" accept=".json" hidden>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="ribbon" id="ribbon"></div>
+  <h1 class="serif">Canada visiting elective — application tracker</h1>
+  <p class="sub">All 17 Canadian medical schools, positioned on the map, researched for a Norwich Medical School (UEA) student. Each marker shows the school's status and how many application tasks are complete. Hover for a summary; click for details, the task checklist, contacts, and the drafted enquiry email. Progress is saved in this browser; Export creates a backup file that can be imported on another device.</p>
+
+  <div class="stats" id="stats"></div>
+
+  <section class="panel" id="fundpanel">
+    <div class="panel-head"><h2>Funding — UEA and national awards</h2><div class="legend" id="fundcount"></div></div>
+    <div style="padding:8px 20px 16px" id="fundlist"></div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head">
+      <h2>The map</h2>
+      <div class="legend">
+        <span><i class="dot" style="background:var(--open)"></i>Open</span>
+        <span><i class="dot" style="background:var(--cond)"></i>Conditional / season-gated</span>
+        <span><i class="dot" style="background:var(--watch)"></i>Paused — watching</span>
+        <span><i class="dot" style="background:var(--closed)"></i>Closed / language-gated</span>
+      </div>
+    </div>
+    <div id="mapwrap">
+      <svg id="map" viewBox="0 0 1000 560" role="img" aria-label="Map of Canada with the 17 medical schools and application progress"></svg>
+      <div id="tip"></div>
+    </div>
+  </section>
+
+  <div id="lists"></div>
+</main>
+
+<div id="ovl"></div>
+<aside id="drawer" role="dialog" aria-modal="true" aria-labelledby="d-title">
+  <div class="d-head">
+    <div class="row"><span class="pill" id="d-pill"></span><button class="ghost d-close" id="d-close">Close ✕</button></div>
+    <h2 class="serif" id="d-title"></h2>
+    <div class="city" id="d-city"></div>
+  </div>
+  <div class="tabs" role="tablist" id="d-tabs"></div>
+  <div class="d-body" id="d-body"></div>
+</aside>
+
+<div id="gate" hidden>
+  <div class="gate-box">
+    <svg class="leaf" viewBox="0 0 24 24" aria-hidden="true" style="width:26px;height:26px"><path fill="var(--maple)" d="M12 1.5l1.8 3.6 2.4-1.2-.7 3.9 3.4-.6-1.7 3 3.3 1.3-2.7 2 2 2.6-3.7.3.5 3.6-3.4-1.6-.4 3.9L12 20l-.8 2.3-.4-3.9-3.4 1.6.5-3.6-3.7-.3 2-2.6-2.7-2 3.3-1.3-1.7-3 3.4.6-.7-3.9 2.4 1.2z"/></svg>
+    <h2 class="serif">Enter PIN</h2>
+    <p>This unlocks the saved progress for this tracker. The PIN is set in the Supabase database (see the repository README to change it).</p>
+    <input type="password" id="pinInput" inputmode="numeric" autocomplete="off" aria-label="PIN">
+    <div class="gate-row"><input type="checkbox" id="pinRemember" style="width:15px;height:15px"><label for="pinRemember">Remember on this device</label></div>
+    <button class="solid" id="pinGo">Unlock</button>
+    <div class="gate-err" id="pinErr"></div>
+    <div class="gate-alt"><a href="#" id="pinOffline">Continue without syncing (this device only)</a></div>
+  </div>
+</div>
+<footer>Research current as of 23 July 2026. Dates assume the UEA Year-4 abroad elective period, expected July–August 2027 (unconfirmed — see the Documents task). Schools that cannot host that period are flagged. This page does not send email; drafts are copied and sent manually.</footer>
+
+<script src="./config.js"></script>
+<script>
+"use strict";
+/* ---------- data ---------- */
+const STATUS = {
+  open:   {label:"Open",        c:"var(--open)",   soft:"var(--open-soft)"},
+  cond:   {label:"Conditional", c:"var(--cond)",   soft:"var(--cond-soft)"},
+  watch:  {label:"Paused · watch", c:"var(--watch)", soft:"var(--watch-soft)"},
+  closed: {label:"Closed",      c:"var(--closed)", soft:"var(--closed-soft)"},
+};
+const S = [
+ {slug:"dalhousie",name:"Dalhousie",city:"Halifax, NS",lon:-63.57,lat:44.65,tier:"Tier 1",status:"open",
+  head:"Accepts international students; UK eligibility to be confirmed in writing. Pediatrics (IWK Health Centre), psychiatry and neurology are listed as available. Published seasons show a summer gap — July–August 2027 availability is unconfirmed and has been asked by email.",
+  window:"Seasonal rounds, first-come-first-served. No summer international season is published — July–August 2027 availability asked by email. Fall 2027 Round 1 projected late May 2027. Decisions can arrive 8 weeks pre-start; 7 days to accept.",
+  fees:"≈ C$1,660 (~£900) — $100 app + $744 acceptance (incl. $244 malpractice, bundled) + portal $745",
+  fine:"Final year + 5 core rotations required · 4 wks/calendar-yr + 8 wks/academic-yr caps · police check ≤12 months of elective END",
+  contacts:[{r:"International visiting electives (UGME)",e:"intl.electives@dal.ca",p:"902-494-6592"},{r:"Electives coordinator (alt)",e:"electives@dal.ca",p:"902-494-7843"},{r:"Psychiatry UG education coordinator",e:"Psych.Undergrad@dal.ca",p:"902-473-5633"}],
+  tasks:[["Send the enquiry email (draft in Email tab)","now"],["Eligibility confirmed in writing (UK/GMC school OK)",""],["Fall-2027 round dates known",""],["AFMC portal account live (needs UK-school verification)","by Mar 2027"],["Immunization form signed + serology done","by Mar 2027"],["ACRO police certificate ordered","wk of 4 Jan 2027"],["Good-standing letter in hand","Apr 2027"],["Apply on round-opening day (summer round if offered; else Fall R1 ~late May 2027)",""],["Offer accepted within 7 days + fees paid",""]],
+  q:["Do UK GMC schools satisfy the 'FAIMER/WHO or LCME' wording?","Fall-2027 round dates — and is there any summer season?","Does ACRO ± enhanced DBS satisfy the vulnerable-sector check?","Health-insurance requirement in Nova Scotia?"],
+  email:{to:"intl.electives@dal.ca",subj:"International visiting elective enquiry — Pediatrics/Psychiatry, July–August 2027",body:"Dear Visiting Electives Team,\n\nI am a final-year medical student at Norwich Medical School, University of East Anglia (UK GMC-recognised, World Directory-listed, graduating 2028). I hope to undertake a 4-week elective in Pediatrics or Psychiatry in July–August 2027.\n\nCould I ask:\n1. Do students from UK GMC-accredited schools meet your international eligibility requirements?\n2. Is a July–August 2027 international season offered, and if so when do its application rounds open? (If not, when do the Fall 2027 rounds open?)\n3. Would a UK ACRO police certificate (plus enhanced DBS) satisfy your vulnerable-sector check requirement?\n4. Is health insurance required for international students in Nova Scotia, and to what standard?\n\nI can provide immunisation serology, letters and documents promptly.\n\nMany thanks,\n[Name] · Norwich Medical School, UEA · [email] · [phone]"},
+  watch:"Portal profile for Fall-2027 round dates (monthly; weekly from Mar 2027)."},
+ {slug:"queens",name:"Queen's",city:"Kingston, ON",lon:-76.48,lat:44.23,tier:"Tier 1",status:"open",
+  head:"Accepts international students. Pediatrics and general psychiatry are open to internationals. Only 2-week electives are currently offered; whether two consecutive blocks can be combined is unconfirmed.",
+  window:"Window opens ~16 wks and closes ~14 wks before each 2-week block. For a mid-July 2027 block: window ~late March 2027 (2027 calendar not yet published). Documents 12 wks pre-start; visa proof 6 wks pre-start.",
+  fees:"≈ C$2,500 (~£1,360) — portal $745 + $100/block + $644 acceptance (incl. $244 malpractice)",
+  fine:"IGRA accepted for TB (good for BCG-vaccinated UK students) · their own Criminal Record Disclosure form replaces a police certificate",
+  contacts:[{r:"Carrie Barr — Elective Coordinator, UGME",e:"medelect@queensu.ca",p:"613-533-2542"}],
+  tasks:[["Send the enquiry email","now"],["Consecutive-blocks question answered (4 wks possible?)",""],["Autumn 2027 block calendar known",""],["AFMC portal account live","by Mar 2027"],["Immunization form + serology done","by Mar 2027"],["Apply at window-open","~late Mar 2027"],["Documents complete","12 wks pre-start"],["Visa/eTA proof uploaded","6 wks pre-start"]],
+  q:["Can two consecutive 2-week blocks form a 4-week elective — and is the $644 fee then per block or per elective?","When does the autumn 2027 calendar publish?","Is Neurology (under Dept of Medicine) ever open to internationals?","Is a final-year student graduating 2028 eligible for Sept 2027?"],
+  email:{to:"medelect@queensu.ca",subj:"International visiting elective enquiry — Pediatrics/Psychiatry, July–August 2027",body:"Dear Ms Barr,\n\nI am a final-year medical student at Norwich Medical School, University of East Anglia (UK GMC-recognised programme, graduating 2028), hoping to undertake a 4-week elective in Pediatrics or Psychiatry in July–August 2027.\n\nCould I ask:\n1. When will the summer 2027 two-week block calendar and international application windows be published?\n2. I understand 4-week electives are not currently offered — can two consecutive 2-week blocks be applied for to form a 4-week placement, and is the C$644 acceptance fee then charged once or per block?\n3. Is Neurology (under the Department of Medicine) ever open to international visiting students?\n4. Is a final-year student graduating 2028 eligible for a July 2027 elective, given your year-of-study requirements?\n\nI hold IGRA TB testing and can complete your Criminal Record Disclosure form and serology promptly.\n\nMany thanks,\n[Name] · Norwich Medical School, UEA · [email] · [phone]"},
+  watch:"Portal profile for the 2027 block calendar (monthly; weekly from Mar 2027)."},
+ {slug:"manitoba",name:"Manitoba",city:"Winnipeg, MB",lon:-97.14,lat:49.90,tier:"Tier 1",status:"open",
+  head:"Accepts international students; applications due 16 weeks before start. Offers depend on capacity remaining after domestic allocation. The 2026 international season covered July–August, so a July 2027 elective fits the published pattern; 2027 dates are unconfirmed.",
+  window:"Complete application due 16 wks pre-start → apply by ~24 March 2027 for a mid-July start. Incomplete applications auto-cancel at 12 wks. CPSM registration ≥45 days pre-start.",
+  fees:"≈ C$1,426 (~£775) + malpractice cost TBC — portal $745 + $250 + $250 + ~$98–101 + CPSM ~$75–80. Zero refunds.",
+  fine:"Police check must be IN HAND at application (≤12 months of application date) · $5M-aggregate malpractice wording · max 12 weeks total",
+  contacts:[{r:"Cam Woo — Clerkship Electives Program Administrator",e:"electivesugme@umanitoba.ca",p:"204-789-3568 (Mon–Fri 14:30–21:30 UK)"},{r:"Dr. Aldrich Ong — Electives Director",e:"aong3@cancercare.mb.ca",p:""}],
+  tasks:[["Send the availability email — does a Sept–Oct 2027 season exist?","now"],["Season answer received",""],["AFMC portal account live","by Mar 2027"],["ACRO in hand BEFORE applying","Jan–Feb 2027"],["Immunization form + serology done","by Apr 2027"],["Insurance proof ready (needed with application)","Apr 2027"],["Submit a complete application as early as allowed","by ~24 Mar 2027"]],
+  q:["Are international electives available Sept–Oct 2027, or does the season end late September as in 2026?","Earliest submission date for a September 2027 start?","Is malpractice bought through UM (cost?) or is UK MDO cover at $5M acceptable?","Registration fee $97.89 or $101.32 — portal pages conflict?"],
+  email:{to:"electivesugme@umanitoba.ca",subj:"International visiting elective enquiry — Sept–Oct 2027 availability",body:"Dear Mr Woo,\n\nI am a final-year medical student at Norwich Medical School, University of East Anglia (UK GMC-recognised, World Directory-listed, graduating 2028). I'm hoping to undertake a 4-week elective in Pediatrics, Psychiatry or Neurology starting mid-July 2027.\n\nCould I ask:\n1. Are international visiting electives available in July–August 2027?\n2. What is the earliest date I can submit an application for a mid-July 2027 start?\n3. Is malpractice insurance purchased through the university (and at what cost), or is UK Medical Protection Society elective cover at C$5M aggregate acceptable?\n4. Would a UK ACRO police certificate satisfy the vulnerable-sector screening requirement?\n\nMany thanks,\n[Name] · Norwich Medical School, UEA · [email] · [phone]"},
+  watch:"Portal profile for 2027 season span + the fee conflict (monthly)."},
+ {slug:"ubc",name:"UBC",city:"Vancouver, BC",lon:-123.12,lat:49.28,tier:"Tier 1 — November 2027 option",status:"cond",
+  head:"Accepts UK students, but international start dates run November–June only. Nearest possible start: 1 November 2027; application window 17 May – 9 August 2027, processed first come, first served.",
+  window:"Window opens 24 wks and closes 12 wks pre-start (bi-weekly Mondays). Nov-01 2027 start → apply 17 May – 9 Aug 2027. Only 2-week blocks — 4 weeks = two consecutive placements.",
+  fees:"≈ C$1,925 (~£1,045) — portal $745 + $300 app + $500 acceptance (incl. compulsory $325 UBC malpractice) + CPSBC $100 + $140/elective. Vancouver housing ~£1,300+/month is the real cost.",
+  fine:"CPSBC educational licence must reach the College ≥6 wks pre-start (UBC initiates — reply fast) · N95 fit on local 3M Aura 1870 · UK MDO cover not accepted",
+  contacts:[{r:"Visiting Student Elective Program (Jessica Stromberg / Afia Darko)",e:"visiting.electives@ubc.ca",p:"604-822-2421 (17:00–00:00 UK)"}],
+  tasks:[["Check with UK school: is a Nov–Dec elective creditable?","now"],["Send the enquiry email","now"],["Season + chained-blocks answers received",""],["AFMC portal account live","by Apr 2027"],["Documents pack ready","by May 2027"],["Apply on opening day","17 May 2027"],["CPSBC licence complete","≥6 wks pre-start"]],
+  q:["Is the Nov–Jun season confirmed for 2027–28, and can two 2-week blocks be applied together?","Police-check format + max age for UK students?","Which peds/neuro sites took internationals last cycle?","Does UBC issue an unpaid-clerkship border letter?"],
+  email:{to:"visiting.electives@ubc.ca",subj:"International visiting elective enquiry — Pediatrics/Neurology, Nov–Dec 2027",body:"Dear Visiting Electives Team,\n\nI am a final-year medical student at Norwich Medical School, University of East Anglia (UK GMC-recognised, World Directory-listed, graduating 2028). Your international elective season runs November–June; I could undertake a 4-week elective starting early November 2027 in Pediatrics, Neurology or Psychiatry.\n\nCould I ask:\n1. Is the November–June international season confirmed for 2027–28, and can two consecutive 2-week blocks be applied for together to form a 4-week elective?\n2. What police-check format do you require from UK students (ACRO certificate / enhanced DBS), and what maximum age at start?\n3. Which pediatric/neurology sites accepted international students last cycle?\n4. Does UBC issue a letter confirming unpaid-clerkship status for border purposes?\n\nMany thanks,\n[Name] · Norwich Medical School, UEA · [email] · [phone]"},
+  watch:"2027-28 season confirmation; the $325 malpractice figure traces to a 2022-dated FAQ (monthly)."},
+ {slug:"toronto",name:"Toronto",city:"Toronto, ON",lon:-79.38,lat:43.65,tier:"Tier 1 — Jan–Aug 2028 option",status:"cond",
+  head:"International placements run January–August only and require a placement agreement between the schools. UEA holds one (expires 15 July 2028). The 2027 cycle is closed; the Jan–Aug 2028 cycle is usable only if UEA permits an elective in that period.",
+  window:"Annual cycle; the 2027 cycle closed 26 June 2026. For Jan–Aug 2028: UEA agreement already in place (expiry 15 Jul 2028; post-mid-July renewal question outstanding) → Random Selection ~May–Jun 2027 → AFMC application ~Aug–Sep 2027.",
+  fees:"≈ C$2,100 (~£1,140) — portal $745 + $350 app + $550 acceptance + Synergy $60 + malpractice ~$264 + UHIP ~$66/mo",
+  fine:"Agreements verified May 2026: Aston (2031), Sheffield (2029), Keele (2029), BSMS/UEA/Nottingham/Warwick (2028); Birmingham and RCSI expire September 2027 and would need renewal for a 2028 elective. SickKids Paediatric Cardiovascular Surgery accepts 6 international students per year directly. The SickKids observer program ($275) may not qualify for elective credit.",
+  contacts:[{r:"International Visiting Electives",e:"medicine.intelective@utoronto.ca",p:"416-978-1831"},{r:"Meera Rai — Partnerships Advisor (agreements)",e:"meera.rai@utoronto.ca",p:"416-978-6585"}],
+  tasks:[["Ask UK school whether it holds a U of T Placement Agreement","now"],["If no agreement: school lodges request","by Dec 2026"],["Agreement valid through 2028 confirmed",""],["2028 Random Selection dates known",""],["Register for the lottery","~May–Jun 2027"],["If selected: AFMC application + documents","Jul–Sep 2027"],["Synergy clearance + UHIP sorted","before start"]],
+  q:["Is [school] on the current agreement list — or what's the new-agreement timeline before 1 May 2027?","2028 Random Selection dates?","Is UK MDO cover accepted for the $5M minimum?","How oversubscribed were international placements last cycle?"],
+  email:{to:"medicine.intelective@utoronto.ca",subj:"International visiting elective enquiry — Pediatrics, Jan–Aug 2028 cycle",body:"Dear International Visiting Electives Team,\n\nI am a final-year medical student at Norwich Medical School, University of East Anglia (UK GMC-recognised, graduating 2028), hoping to undertake a 4-week Pediatrics elective at the University of Toronto in the January–August 2028 cycle.\n\nCould I ask:\n1. [If school holds an agreement:] Can you confirm our Placement Agreement remains valid through 2028? / [If not:] What is the process and timeline for a new Placement Agreement ahead of the 1 May 2027 deadline?\n2. When will Random Selection registration dates for the Jan–Aug 2028 cycle be published?\n3. Is UK Medical Protection Society elective indemnity accepted for the C$5M malpractice minimum, or should I budget for the U of T scheme?\n4. Roughly how oversubscribed were international placements in the last cycle?\n\nMany thanks,\n[Name] · Norwich Medical School, UEA · [email] · [phone]"},
+  watch:"2028 Random Selection dates (~Mar 2027 on); agreement list + Birmingham/RCSI renewals (quarterly)."},
+ {slug:"mcmaster",name:"McMaster",city:"Hamilton, ON",lon:-79.87,lat:43.26,tier:"Tier 2 — January 2028 option",status:"cond",
+  head:"Accepts international students via lottery; blocks run January–June only. Next usable block: January 2028. Its one-week application window is expected around mid-September 2027.",
+  window:"Each 4-week block has a one-week window ~16 wks ahead, then a lottery; 72 hours to accept. Jan-2028 window unpublished — expected ~mid-Sept 2027.",
+  fees:"≈ C$1,495 (~£810) — $250 app + $500 acceptance (malpractice included) + portal $745. Fee currency CAD-vs-USD conflict — ask.",
+  fine:"'FAIMER-listed' school wording (UK/WDOMS should fit — confirm) · N95 fit test names a specific 3M model · passport/eTA docs in the application pack",
+  contacts:[{r:"International Visiting Electives, UG Electives Office",e:"mdelectvisiting@mcmaster.ca",p:"905-525-9140 x20256 (13:30–21:30 UK)"}],
+  tasks:[["Send the enquiry email","now"],["FAIMER/GMC eligibility confirmed",""],["Jan-2028 window date known","watch from Jul 2027"],["Enter the lottery with documents ready","~Sept 2027"],["Accept within 72h if selected",""]],
+  q:["Does a UK GMC school satisfy the FAIMER wording?","When do 2027-28 windows publish?","Fees CAD or USD?","ACRO accepted for the vulnerable-sector check? N95 model workaround?"],
+  email:{to:"mdelectvisiting@mcmaster.ca",subj:"International visiting elective enquiry — Jan–Feb 2028, Pediatrics/Psychiatry",body:"Dear International Visiting Electives Team,\n\nI am a final-year medical student at Norwich Medical School, University of East Anglia (UK GMC-recognised, World Directory-listed, graduating 2028), interested in a 4-week elective in Pediatrics or Psychiatry in January–February 2028.\n\nCould I ask:\n1. Does a UK GMC-accredited school satisfy your accreditation requirement (your pages reference FAIMER listing)?\n2. When will the January 2028 block application windows be published?\n3. Are the C$250 application and C$500 acceptance fees in CAD or USD?\n4. Is a UK ACRO police certificate accepted in place of a Canadian Police Vulnerable Sector Check, and how can the N95 fit-test requirement be satisfied from the UK?\n\nMany thanks,\n[Name] · Norwich Medical School, UEA · [email] · [phone]"},
+  watch:"2027-28 block windows (monthly from Jul 2027)."},
+ {slug:"nosm",name:"NOSM U",city:"Sudbury / Thunder Bay, ON",lon:-80.99,lat:46.49,tier:"Tier 2 — paused, monitoring",status:"watch",
+  head:"Runs its own international electives program, currently limited to Canadians studying abroad. The August 2026 opening does not include other internationals. Subsidized housing ($375/week) is available if the program reopens.",
+  window:"If the stream reopens: apply 36–27 wks pre-start, first-come-first-served → ~22 Oct – 24 Dec 2026 for a July 2027 start. One application per lifetime — only apply with perfect documents.",
+  fees:"≈ C$3,482 incl. 6 wks housing (~£1,890) — $485 app + $300 + forced $245 malpractice (UK MDO rejected) + UHIP $77 + $125 module + $375/wk housing",
+  fine:"Police check refreshed by 8 wks pre-start or cancelled with ALL fees forfeited · their '(or country equivalent)' wording is the friendliest to ACRO/DBS",
+  contacts:[{r:"International Electives Office",e:"internationalelectives@nosm.ca",p:"1-800-461-8777"},{r:"Joël Leduc — Manager, Community Relations (urgent matters)",e:"jleduc@nosm.ca",p:""}],
+  tasks:[["Check nosm.ca after 1 Aug 2026 for a non-Canadian opening","Aug–Dec 2026"],["Send the enquiry email (after the opening)","Aug–Sep 2026"],["If open: apply on the opening date with complete documents","23 Dec 2026"]],
+  q:["When does the NON-Canadian stream open?","Are the posted (CSA-labelled) fees the same for internationals?","Autumn 2027 blackout dates?","ACRO accepted as 'country equivalent'?"],
+  email:{to:"internationalelectives@nosm.ca",subj:"International Elective Enquiry — non-Canadian international students, 2027",body:"Dear International Electives Team,\n\nI am a final-year medical student at Norwich Medical School, University of East Anglia (UK GMC-recognised, graduating 2028), interested in a 4-week elective in July–August 2027 under your International MD Electives Program.\n\nCould I ask:\n1. Is the program currently accepting applications from non-Canadian international students, or does the \"Canadians Studying Abroad only\" note still apply — and if so, when is the international stream expected to reopen?\n2. If open: are the published fees (application C$485, acceptance C$300, malpractice C$245, UHIP C$77) the same for international learners?\n3. Would a UK ACRO police certificate satisfy your \"vulnerable sector check (or country equivalent)\" wording?\n4. Which disciplines and communities would be open for July–August 2027?\n\nMany thanks,\n[Name] · Norwich Medical School, UEA · [email] · [phone]"},
+  watch:"nosm.ca international-electives page + portal profile — WEEKLY through autumn 2026."},
+ {slug:"mcgill",name:"McGill",city:"Montreal, QC",lon:-73.68,lat:45.55,tier:"Tier 2 — exchange route only",status:"cond",
+  head:"English-language school. International clinical electives are suspended except for partner schools (no UK partners) and IFMSA-nominated students. Observer-only placements exist at MUHC, including The Neuro and Montreal Children's ($250).",
+  window:"No window while suspended. IFMSA route: apply via Students for Global Health UK ~autumn 2026 for 2027. If any door opens: CMQ registration must complete 6 wks pre-start.",
+  fees:"If a door opens: ≈ C$1,245 fees (~£680) + CMQ cost TBC. Observership path: $250 + living costs.",
+  fine:"Partner list excludes UK schools · observer status may not earn UK elective credit — get the ruling first",
+  contacts:[{r:"Juliet-Ann McArthur — Visiting Elective Coordinator (international)",e:"electives.med@mcgill.ca",p:"514-399-9371"},{r:"Dr. Jacques Balayla — UGME Electives Director",e:"electivesdirector.med@mcgill.ca",p:""}],
+  tasks:[["Ask SfGH about the IFMSA Canada contract (covers 3 schools)","now"],["Watch the suspension status","quarterly"],["If interested in The Neuro observership: UK credit ruling first",""]],
+  q:["Will the suspension lift before autumn 2027 — notification list?","How does IFMSA pre-selection into McGill work?","CMQ registration: who files, cost?","Which MUHC services take Option-D observers in peds/psych/neuro?"],
+  email:{to:"electives.med@mcgill.ca",subj:"International visiting elective enquiry — suspension status, 2027",body:"Dear Ms McArthur,\n\nI am a final-year medical student at Norwich Medical School, University of East Anglia (UK GMC-recognised, graduating 2028), interested in a 4-week elective in Pediatrics, Psychiatry or Neurology in autumn 2027.\n\nCould I ask:\n1. Is the suspension of international visiting electives expected to lift before autumn 2027, and is there a notification list I could join?\n2. Does McGill hold any agreement with [UK medical school] that would qualify it as a partner institution?\n3. If clinical electives remain closed, which MUHC services accept Option D observers in pediatrics, psychiatry or neurology, and would a 4-week observership be possible in September–October 2027?\n\nMany thanks,\n[Name] · Norwich Medical School, UEA · [email] · [phone]"},
+  watch:"Portal profile suspension banner (quarterly)."},
+ {slug:"calgary",name:"Calgary",city:"Calgary, AB",lon:-114.07,lat:51.05,tier:"Tier 2 — exchange route only",status:"cond",
+  head:"Direct international applications are cancelled. The only route is IFMSA exchange nomination (final year, 4-week maximum). The operative deadline is the UK exchange body's selection calendar.",
+  window:"IFMSA liaison must give Calgary notice ≥4 months pre-start → for 1 Sep 2027, notice by 1 May 2027. SfGH (UK) selection runs ~a year ahead — ask now.",
+  fees:"≈ C$1,320 (~£740) + IFMSA exchange fee (~€300–500, lodging included)",
+  fine:"Research side-door: ACHRI visiting-student-researcher route ($145 + supervisor letter) — needs UK credit ruling",
+  contacts:[{r:"Visiting Electives Coordinator (UME)",e:"visiting@ucalgary.ca",p:"UME 403-210-3841"},{r:"Pediatrics UME (Alberta Children's)",e:"peds@ucalgary.ca",p:"403-220-2138"}],
+  tasks:[["SfGH exchange enquiry sent (same email covers McGill + Sask)","now"],["UK↔Canada SCOPE contract status known",""],["If contract exists: local SfGH branch application","~autumn 2026"]],
+  q:["Is IFMSA the only 2027 route, or do the 'TBD' portal entries mean direct applications reopen?","Does Calgary host incoming SCOPE students — seats, months?","ACRO accepted for the vulnerable-sector check?"],
+  email:{to:"visiting@ucalgary.ca",subj:"International visiting elective enquiry — routes for UK students, 2027",body:"Dear Visiting Electives Team,\n\nI am a final-year medical student at Norwich Medical School, University of East Anglia (UK GMC-recognised, graduating 2028), interested in a 4-week elective in Pediatrics, Psychiatry or Clinical Neurosciences in September–October 2027.\n\nCould I ask:\n1. Is IFMSA pre-selection currently the only application route for international students, or will direct international applications reopen for 2027?\n2. If IFMSA-only: does Calgary expect to host incoming SCOPE students in autumn 2027, and in which departments?\n3. Would a UK ACRO certificate satisfy the criminal-records requirement?\n\nMany thanks,\n[Name] · Norwich Medical School, UEA · [email] · [phone]"},
+  watch:"Portal 'TBD' international entries (quarterly) + SfGH reply."},
+ {slug:"saskatchewan",name:"Saskatchewan",city:"Saskatoon, SK",lon:-106.67,lat:52.13,tier:"Tier 2 — exchange route only",status:"cond",
+  head:"Portal applications are limited to four categories: Saskatchewan residents abroad, RCSI, LMU Munich, and IFMSA nominees. For other UK schools, IFMSA nomination is the only route. Elective fee: $600 per week.",
+  window:"Eligible categories apply ~12 wks before each block. Nomination cycles run ~a year earlier — that's the real deadline.",
+  fees:"≈ C$4,645 for 6 wks (~£2,520) — $600/WEEK elective fee + $50 + $150 + CPSS $100 + portal $745",
+  fine:"$5M/$2M malpractice wording · N95 within 24 months · observership fallback exists via SHA credentialing (non-credit)",
+  contacts:[{r:"Shari Smith — Canadian & International Electives Coordinator",e:"med.electives@usask.ca",p:"306-966-4270"},{r:"Kailey Friesen — Elective Administrator",e:"visiting.electives@usask.ca",p:""}],
+  tasks:[["Covered by the SfGH exchange enquiry","now"],["Any non-category route? (one email)",""]],
+  q:["Any clinical route for a UK school with no RCSI/LMU link?","Does USask host incoming UK SCOPE exchanges — who nominates?","Would USask entertain a new reciprocal agreement with a UK school?"],
+  email:{to:"med.electives@usask.ca",subj:"International visiting elective enquiry — eligibility categories, 2027",body:"Dear Ms Smith,\n\nI am a final-year medical student at Norwich Medical School, University of East Anglia (UK GMC-recognised, graduating 2028), interested in a 4-week elective in autumn 2027.\n\nI understand international eligibility is limited to Saskatchewan residents studying abroad, RCSI, LMU Munich, and IFMSA-nominated students. Could I ask:\n1. Is there any clinical-elective route for a student at a UK GMC-accredited school outside those categories?\n2. Does USask host incoming IFMSA/SCOPE clinical exchanges from the UK, and who handles nomination?\n3. Would the College consider a one-off placement or new reciprocal agreement proposed by my school's electives office?\n\nMany thanks,\n[Name] · Norwich Medical School, UEA · [email] · [phone]"},
+  watch:"2027 elective-period table publication."},
+ {slug:"western",name:"Western",city:"London, ON",lon:-81.25,lat:42.98,tier:"Closed — confirmation pending",status:"closed",
+  head:"The published international stream requires Canadian citizenship (it serves Canadians studying abroad). The Paediatrics department page contradicts this; a confirmation email is drafted.",
+  window:"n/a unless the gate-confirm email surprises.",fees:"≈ C$1,750 if the gate ever falls",
+  fine:"Preceptor contact explicitly forbidden — the gate email goes ONLY to the VSE office",
+  contacts:[{r:"Visiting Student Electives Office, Schulich UME",e:"electives@schulich.uwo.ca",p:""}],
+  tasks:[["Send the gate-confirm email","now"],["File the answer; close or reopen accordingly",""]],
+  q:["Is a non-Canadian UK student eligible for any clinical elective (London, Windsor, or rural sites)?"],
+  email:{to:"electives@schulich.uwo.ca",subj:"Eligibility enquiry — international (non-Canadian) visiting student",body:"Dear Visiting Student Electives Office,\n\nI am a final-year medical student at Norwich Medical School, University of East Anglia (UK GMC-recognised programme, graduating 2028), a UK citizen, hoping to undertake a 4-week elective in July–August 2027.\n\nYour visiting-elective documentation appears to limit international applications to Canadian citizens or permanent residents studying abroad — however, the Paediatrics undergraduate education page refers to visiting students from \"Canadian and international medical schools.\"\n\nCould you confirm whether a non-Canadian student at a UK medical school is eligible for a clinical visiting elective at Schulich, and if so through which application route?\n\nMany thanks,\n[Name] · Norwich Medical School, UEA · [email] · [phone]"},
+  watch:"Their reply only."},
+ {slug:"ottawa",name:"Ottawa",city:"Ottawa, ON",lon:-75.70,lat:45.42,tier:"Closed",status:"closed",
+  head:"Closed to non-Canadian international students for both clinical and observational electives (confirmed on the school site and portal profile). A Royal Ottawa psychiatry observership exists but may not qualify for elective credit.",
+  window:"None. Watch the portal profile for a reopening banner.",fees:"~C$945 if it ever reopens",
+  fine:"Royal Ottawa observership contact exists if psychiatry-desperate — but UK credit ruling needed first",
+  contacts:[{r:"Visiting Electives Office",e:"uoportal@uottawa.ca",p:"613-562-5800 x2705"},{r:"Royal Ottawa observership (psych)",e:"via 613-722-6521 x6937 (Debra Monroe)",p:""}],
+  tasks:[["No action available — on the watchlist","quarterly"]],
+  q:["Any projected reopening for non-Canadians?"],
+  email:null, watch:"Portal profile reopening banner (quarterly)."},
+ {slug:"alberta",name:"Alberta",city:"Edmonton, AB",lon:-113.49,lat:53.55,tier:"Closed — confirmation pending",status:"closed",
+  head:"Restricted to US-LCME schools and named partner universities (Karolinska, LMU Munich, Graz, Zhejiang); no UK partner. The International Academic Program partner list is unpublished; an enquiry is drafted.",
+  window:"IAP (if a UK partner existed) runs May–Aug only.",fees:"IAP fee unpublished",
+  fine:"Observerships and research explicitly closed to internationals",
+  contacts:[{r:"International Academic Program",e:"iaep@ualberta.ca",p:""},{r:"Visiting Electives Administrator",e:"visitingelectives@ualberta.ca",p:"780-492-8700"}],
+  tasks:[["Send the IAP partner-list email","now"],["File the answer",""]],
+  q:["Is any UK school an IAP partner? Fee? Clinical or observational?"],
+  email:{to:"iaep@ualberta.ca",subj:"International Academic Program — partner universities enquiry",body:"Dear International Academic Program Team,\n\nI am a final-year medical student at Norwich Medical School, University of East Anglia (UK GMC-recognised, graduating 2028), interested in a summer 2027 clinical placement in Edmonton.\n\nCould I ask:\n1. Is any UK medical school currently a partner university for the IAP?\n2. If so: is the placement hands-on clinical or observational, what is the fee per 4-week block, and when do summer 2027 applications open?\n3. If not: is the Faculty open to new partnership proposals from UK schools' global-engagement offices?\n\nMany thanks,\n[Name] · Norwich Medical School, UEA · [email]"},
+  watch:"IAP reply."},
+ {slug:"memorial",name:"Memorial",city:"St. John's, NL",lon:-52.71,lat:47.56,tier:"Closed",status:"closed",
+  head:"Not accepting applications from international medical schools (confirmed on two sources; page updated November 2025).",
+  window:"None; historic international season was April–July anyway.",fees:"n/a",fine:"",
+  contacts:[{r:"UGME Electives Office (Carol Pye / Dr. Sam Aseer)",e:"ugmeelectives@mun.ca",p:"709-864-6343"}],
+  tasks:[["No action available — on the watchlist","quarterly"]],q:["Reopening plans, if any?"],email:null,watch:"UGME visiting page (quarterly)."},
+ {slug:"montreal",name:"Montréal",city:"Montreal, QC",lon:-73.46,lat:45.40,tier:"Closed — French required",status:"closed",
+  head:"Clinical teaching is in French and a French-language attestation is mandatory. No English stream exists.",window:"n/a",fees:"n/a",fine:"",
+  contacts:[{r:"Stages hors Québec (Charles Métivier)",e:"stagiaireshq@med.umontreal.ca",p:""}],
+  tasks:[["No action available",""]],q:[],email:null,watch:"Only if French is acquired."},
+ {slug:"laval",name:"Laval",city:"Quebec City, QC",lon:-71.21,lat:46.81,tier:"Closed — French required",status:"closed",
+  head:"Requires a French-language test, and accepts internationals only from partner schools (Belgium, Switzerland, France, Madagascar); no UK partners.",window:"n/a",fees:"n/a",fine:"",
+  contacts:[{r:"Externat (Dr Miriam Lacasse)",e:"externat@fmed.ulaval.ca",p:"418-656-2131 x405704"}],
+  tasks:[["No action available",""]],q:[],email:null,watch:"—"},
+ {slug:"sherbrooke",name:"Sherbrooke",city:"Sherbrooke, QC",lon:-71.90,lat:45.40,tier:"Closed — French required",status:"closed",
+  head:"Requires fluent French, and accepts only partner-school or IFMSA students. Pediatrics is not open to visiting students.",window:"n/a",fees:"n/a",fine:"",
+  contacts:[{r:"Externat",e:"externat-med@usherbrooke.ca",p:""}],
+  tasks:[["No action available",""]],q:[],email:null,watch:"—"},
+];
+
+/* Funding awards */
+const FUND = [
+ {n:"Norwich Med Chi Society — Pre-Elective Prize", amt:"£500", due:"proposal due September 2026 (Year 4); tutor nomination required", note:"UEA-specific. The nearest deadline in this plan — ask a clinical tutor for nomination now."},
+ {n:"Norwich Med Chi Society — Post-Elective Prize", amt:"£1,000", due:"report submitted after the elective", note:"UEA-specific. Requires a written report on return; plan the report while on placement."},
+ {n:"Royal College of Physicians elective bursaries", amt:"12 × £500", due:"applications reopen late autumn 2026", note:"National. Apply as soon as the round opens."},
+ {n:"RCPSG (Glasgow) student elective awards", amt:"8 × up to £1,000", due:"24 November annually", note:"Requires affiliate membership before applying."},
+ {n:"Lady Allen Trust", amt:"~£1,000", due:"check current round", note:"Child-health-focused electives — fits paediatrics."},
+ {n:"RCPsych neuropsychiatry elective prize", amt:"£200", due:"check current round", note:"Fits the psychiatry/neurology interest."},
+];
+
+/* Global documents track (shared across schools) */
+const DOCS = [
+ ["Email the UK electives office (AFMC verification + Toronto agreement + insurance)","now"],
+ ["Join MPS or MDU as a student member (free)","now"],
+ ["Norwich Med Chi Pre-Elective Prize proposal (£500, tutor-nominated)","Sept 2026"],
+ ["Confirm exact UEA elective dates (expected 14 Jul–11 Aug 2027) and any Year-5 flexibility","now"],
+ ["Serology bloods + IGRA + Tdap booked","by Oct 2026"],
+ ["AFMC immunization form signed by occupational health","by Dec 2026"],
+ ["ACRO police certificate ordered","wk of 4 Jan 2027"],
+ ["Enhanced DBS copy from university","Jan 2027"],
+ ["Letter of good standing requested","Feb 2027"],
+ ["Travel/health insurance with clinical cover arranged","Apr 2027"],
+ ["eTA applied for (after an offer)","Apr–May 2027"],
+ ["CV + letter of intent finalised","before Mar 2027"],
+];
+
+/* ---------- state ---------- */
+const KEY="canada-elective-tracker-v1";
+let state={tasks:{},docs:{},log:{},fund:{}};
+try{const raw=localStorage.getItem(KEY); if(raw) state=Object.assign(state,JSON.parse(raw));}catch(e){}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(state));}catch(e){}
+  if(CLOUD&&PIN){clearTimeout(pushTimer);pushTimer=setTimeout(pushState,800);}}
+const CFG=(typeof window!=="undefined"&&window.TRACKER_CONFIG)||{};
+const CLOUD=!!(CFG.url&&CFG.anonKey);
+let PIN=null,pushTimer=null;
+function setSync(t){const el=document.getElementById("sync");if(el)el.textContent=t;}
+async function rpc(fn,body){
+  const r=await fetch(CFG.url.replace(/\/$/,"")+"/rest/v1/rpc/"+fn,{method:"POST",headers:{apikey:CFG.anonKey,Authorization:"Bearer "+CFG.anonKey,"Content-Type":"application/json"},body:JSON.stringify(body)});
+  if(!r.ok)throw new Error("rpc "+fn+" "+r.status);
+  const t=await r.text();return t?JSON.parse(t):null;}
+async function pushState(){try{await rpc("tracker_set",{pin:PIN,new_data:state});setSync("Saved to cloud · "+new Date().toTimeString().slice(0,5));}catch(e){setSync("Offline — saved on this device");}}
+function hasLocalData(){return Object.keys(state.tasks).length||Object.keys(state.docs).length||Object.keys(state.log).length||Object.keys(state.fund).length;}
+async function unlock(pin,remember,silent){
+  try{
+    const remote=await rpc("tracker_get",{pin});
+    PIN=pin;
+    try{(remember?localStorage:sessionStorage).setItem("tk_pin",pin);}catch(e){}
+    if(remote&&Object.keys(remote).length){state=Object.assign({tasks:{},docs:{},log:{},fund:{}},remote);try{localStorage.setItem(KEY,JSON.stringify(state));}catch(e){}}
+    else if(hasLocalData()){await rpc("tracker_set",{pin:PIN,new_data:state});}
+    document.getElementById("gate").hidden=true;
+    setSync("Saved to cloud · up to date");refresh();return true;
+  }catch(e){
+    if(!silent)document.getElementById("pinErr").textContent="Wrong PIN, or the database could not be reached.";
+    return false;}}
+async function boot(){
+  const gate=document.getElementById("gate");
+  if(!CLOUD){setSync("This device only — cloud not configured");return;}
+  const saved=sessionStorage.getItem("tk_pin")||localStorage.getItem("tk_pin");
+  if(saved&&await unlock(saved,!!localStorage.getItem("tk_pin"),true))return;
+  gate.hidden=false;
+  const go=()=>unlock(document.getElementById("pinInput").value.trim(),document.getElementById("pinRemember").checked,false);
+  document.getElementById("pinGo").addEventListener("click",go);
+  document.getElementById("pinInput").addEventListener("keydown",e=>{if(e.key==="Enter")go();});
+  document.getElementById("pinOffline").addEventListener("click",e=>{e.preventDefault();gate.hidden=true;setSync("This device only — not synced");});
+  document.getElementById("pinInput").focus();}
+function taskDone(slug,i){return !!(state.tasks[slug]&&state.tasks[slug][i]);}
+function progress(s){const t=s.tasks.length;let d=0;for(let i=0;i<t;i++) if(taskDone(s.slug,i)) d++;return {d,t};}
+
+/* ---------- projection & map ---------- */
+const W=1000,H=560,COS=Math.cos(55*Math.PI/180);
+const LON0=-141,LON1=-51,LAT0=41,LAT1=71;
+const sx=W/((LON1-LON0)*COS), sy=H/(LAT1-LAT0), sc=Math.min(sx,sy)*0.98;
+function P(lon,lat){return [ (lon-LON0)*COS*sc + (W-(LON1-LON0)*COS*sc)/2, (LAT1-lat)*sc + (H-(LAT1-LAT0)*sc)/2 ];}
+const MAINLAND=[[-123,49],[-95.2,49],[-95.1,49.4],[-94.6,48.7],[-92.5,48.4],[-90.8,48.1],[-88.4,48.3],[-86.5,47.6],[-84.8,46.9],[-84.3,46.5],[-83.6,46.1],[-82.4,42.9],[-81.7,42.6],[-80,42.5],[-79,42.85],[-79.05,43.3],[-77.6,43.9],[-76.5,44.1],[-75.2,44.7],[-74.3,45],[-71.5,45],[-70.3,45.4],[-69.2,47.1],[-68.2,47.3],[-67.3,45.2],[-66.1,45.1],[-64.8,45.6],[-64.3,45.4],[-65.7,44.6],[-66.1,43.8],[-65,43.5],[-63.5,44.5],[-61.5,45.2],[-59.9,45.9],[-61.4,45.7],[-63.6,46],[-64.9,46.2],[-64.6,47.1],[-65,47.8],[-64.7,48.3],[-64.2,48.8],[-65.8,49.2],[-67.5,48.9],[-69.5,48.1],[-70.9,47.1],[-69.8,48.3],[-68,49.3],[-66,50],[-63,50.3],[-60,50.2],[-58.5,51.3],[-57.1,52],[-55.7,52.5],[-57,53.7],[-58.4,54.2],[-60.4,55.2],[-61.7,56.3],[-61.4,57.3],[-62.5,58.5],[-63,59.4],[-64.5,60.3],[-64.8,60.5],[-67.7,58.9],[-69.6,58.9],[-69.5,59.7],[-71.4,61.1],[-73.7,62.5],[-78,62.4],[-77.4,60.1],[-77.7,58.3],[-76.6,56.2],[-79.5,54.7],[-79.2,51.5],[-80.4,51.3],[-82.2,52.9],[-82.2,55.2],[-85,55.3],[-87.5,56.1],[-92.5,57],[-93.2,58.8],[-94.8,59.1],[-94.7,60.5],[-94,64],[-96.5,64.1],[-96.3,66.9],[-98.5,68],[-101.5,68.5],[-108,68.3],[-110.5,68.7],[-115,69.3],[-121,69.7],[-128,70],[-133.5,69.4],[-136.5,69],[-141,69.6],[-141,60.3],[-139.2,60],[-137.5,58.9],[-135.5,59.7],[-133.8,58.7],[-131.8,56.6],[-130,55.3],[-129.5,54.4],[-127.5,52.4],[-126.4,51],[-124.6,49.8],[-123,49]];
+const NFLD=[[-59.3,47.6],[-56.1,46.7],[-53.6,46.6],[-52.7,47.3],[-52.9,48.6],[-54.1,49.6],[-55.5,49.9],[-56,51],[-55.8,51.6],[-57.2,51.4],[-58.6,49.3],[-59.3,47.9]];
+const VANI=[[-123.3,48.4],[-124.8,48.6],[-125.8,49.2],[-127.2,50.3],[-128.4,50.8],[-127.5,50.9],[-125.5,50],[-124.2,49.4],[-123.4,48.7]];
+function poly(pts){return "M"+pts.map(p=>P(p[0],p[1]).map(n=>n.toFixed(1)).join(" ")).join("L")+"Z";}
+
+const svg=document.getElementById("map");
+const NS="http://www.w3.org/2000/svg";
+function el(tag,attrs,parent){const e=document.createElementNS(NS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);(parent||svg).appendChild(e);return e;}
+el("path",{d:poly(MAINLAND),fill:"var(--land)",stroke:"var(--land-line)","stroke-width":"1.2","stroke-linejoin":"round"});
+el("path",{d:poly(NFLD),fill:"var(--land)",stroke:"var(--land-line)","stroke-width":"1"});
+el("path",{d:poly(VANI),fill:"var(--land)",stroke:"var(--land-line)","stroke-width":"1"});
+[["WEST",-119,57.5],["ONTARIO",-86,51.5],["QUEBEC",-72.5,52.5],["ATLANTIC",-60,47.2]].forEach(([t,lo,la])=>{
+  const [x,y]=P(lo,la);
+  el("text",{x,y,fill:"var(--muted)","font-size":"11","letter-spacing":"3","text-anchor":"middle",opacity:".55","font-family":"system-ui"}).textContent=t;
+});
+
+/* marker nudges for the southern-Ontario cluster */
+const NUDGE={western:[-14,10],mcmaster:[-4,14],toronto:[6,-2],queens:[10,-8],ottawa:[2,-12],montreal:[10,10],mcgill:[-2,-10],sherbrooke:[16,2]};
+const tip=document.getElementById("tip");
+const R=13, CIRC=2*Math.PI*R;
+const markerEls={};
+S.forEach(s=>{
+  let [x,y]=P(s.lon,s.lat); const n=NUDGE[s.slug]; if(n){x+=n[0];y+=n[1];}
+  s._x=x; s._y=y;
+  const g=el("g",{class:"marker",transform:`translate(${x},${y})`,tabindex:"0",role:"button","aria-label":s.name});
+  el("circle",{r:R,fill:"var(--panel)",stroke:"var(--line)","stroke-width":"1"},g);
+  el("circle",{r:R,fill:"none",stroke:"var(--line-soft)","stroke-width":"3"},g);
+  const ring=el("circle",{r:R,fill:"none",stroke:STATUS[s.status].c,"stroke-width":"3","stroke-linecap":"round","stroke-dasharray":`0 ${CIRC}`,transform:"rotate(-90)"},g);
+  el("circle",{class:"core",r:5,fill:STATUS[s.status].c},g);
+  const lbl=el("text",{y:-R-6,"text-anchor":"middle","font-size":"11.5","font-weight":"600",fill:"var(--ink)","font-family":"system-ui"},g); lbl.textContent=s.name;
+  markerEls[s.slug]={ring};
+  g.addEventListener("mousemove",ev=>{
+    const wrap=document.getElementById("mapwrap").getBoundingClientRect();
+    showTip(s, ev.clientX-wrap.left, ev.clientY-wrap.top);
+  });
+  g.addEventListener("mouseleave",()=>tip.style.opacity=0);
+  g.addEventListener("focus",()=>{const r=svg.getBoundingClientRect();showTip(s,(x/W)*r.width,(y/H)*r.height);});
+  g.addEventListener("blur",()=>tip.style.opacity=0);
+  g.addEventListener("click",()=>openDrawer(s.slug));
+  g.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();openDrawer(s.slug);}});
+});
+function showTip(s,x,y){
+  const {d,t}=progress(s);
+  const next=nextTask(s);
+  tip.innerHTML=`<div class="t-name">${s.name} <span class="pill" style="background:${STATUS[s.status].soft};color:${STATUS[s.status].c}">${STATUS[s.status].label}</span></div>
+    <div class="t-row"><b class="ringtxt">${d}/${t}</b> steps done${d<t?` · ${t-d} remaining`:" · complete"}</div>
+    ${next?`<div class="t-row">Next: ${next}</div>`:""}
+    <div class="t-row" style="font-size:11.5px;margin-top:4px">Click for details</div>`;
+  const wrap=document.getElementById("mapwrap");
+  const tw=tip.offsetWidth||220;
+  tip.style.left=Math.min(Math.max(8,x+16),wrap.clientWidth-tw-8)+"px";
+  tip.style.top=(y+18)+"px";
+  tip.style.opacity=1;
+}
+function nextTask(s){for(let i=0;i<s.tasks.length;i++) if(!taskDone(s.slug,i)) return s.tasks[i][0]; return null;}
+
+/* ---------- rings + stats + lists ---------- */
+function refresh(){
+  S.forEach(s=>{const {d,t}=progress(s); const f=t?d/t:0; markerEls[s.slug].ring.setAttribute("stroke-dasharray",`${(CIRC*f).toFixed(1)} ${CIRC}`);});
+  // stats
+  const openN=S.filter(s=>s.status==="open").length;
+  const totT1=S.filter(s=>s.tier.startsWith("Tier 1"));
+  let d1=0,t1=0; totT1.forEach(s=>{const p=progress(s);d1+=p.d;t1+=p.t;});
+  let dd=0; DOCS.forEach((_,i)=>{if(state.docs[i])dd++;});
+  const contacted=S.filter(s=>(state.log[s.slug]||[]).length>0).length;
+  document.getElementById("stats").innerHTML=`
+    <div class="stat"><div class="n serif">${openN}<span style="font-size:15px;color:var(--muted)"> / 17</span></div><div class="l">Schools open to direct application</div></div>
+    <div class="stat"><div class="n serif">${d1}<span style="font-size:15px;color:var(--muted)"> / ${t1}</span></div><div class="l">Tier-1 steps done</div><div class="bar"><i style="width:${t1?100*d1/t1:0}%"></i></div></div>
+    <div class="stat"><div class="n serif">${dd}<span style="font-size:15px;color:var(--muted)"> / ${DOCS.length}</span></div><div class="l">Documents track</div><div class="bar"><i style="width:${100*dd/DOCS.length}%"></i></div></div>
+    <div class="stat"><div class="n serif">${contacted}<span style="font-size:15px;color:var(--muted)"> / 17</span></div><div class="l">Schools contacted</div></div>`;
+  // ribbon
+  const days=Math.max(0,Math.ceil((new Date("2027-03-24")-Date.now())/86400000));
+  document.getElementById("ribbon").innerHTML=`<b>Main deadline period: March 2027</b><span>For the expected July–August 2027 elective (UEA Year-4 module, dates unconfirmed), Manitoba and Queen's applications are due in late March 2027. If the elective moves to 2028, the key period becomes May 2027 (Toronto lottery, UBC, McMaster).</span><span class="count mono">${days} days remaining.</span>`;
+  // lists
+  const groups=[["Tier 1 — primary applications",s=>s.tier.startsWith("Tier 1")],["Tier 2 — backup options",s=>s.tier.startsWith("Tier 2")],["Closed — no current route",s=>s.tier.startsWith("Closed")]];
+  document.getElementById("lists").innerHTML=groups.map(([title,fn])=>{
+    const rows=S.filter(fn).map(s=>{
+      const {d,t}=progress(s);
+      return `<button class="card" data-slug="${s.slug}">
+        <div class="c-top"><h3>${s.name}</h3><span class="city">${s.city}</span></div>
+        <div class="c-head">${s.head}</div>
+        <div class="c-foot"><span class="pill" style="background:${STATUS[s.status].soft};color:${STATUS[s.status].c}">${STATUS[s.status].label}</span>
+        <span><span class="ringtxt">${d}/${t}</span> steps</span>
+        ${(state.log[s.slug]||[]).length?`<span>✉ ${(state.log[s.slug]).length} contact${state.log[s.slug].length>1?"s":""} logged</span>`:""}</div>
+      </button>`;}).join("");
+    return `<div class="tiergrp">${title}</div><div class="cards">${rows}</div>`;
+  }).join("");
+  document.querySelectorAll(".card").forEach(c=>c.addEventListener("click",()=>openDrawer(c.dataset.slug)));
+  // funding panel
+  let fd=0; FUND.forEach((_,i)=>{if(state.fund[i])fd++;});
+  document.getElementById("fundcount").textContent=`${fd} of ${FUND.length} applied for`;
+  document.getElementById("fundlist").innerHTML=FUND.map((f,i)=>{
+    const done=!!state.fund[i];
+    return `<div class="task ${done?"done":""}"><input type="checkbox" id="f${i}" ${done?"checked":""} data-i="${i}"><label for="f${i}"><b>${f.n}</b> — ${f.amt} <span class="due mono">· ${f.due}</span><br><span class="note">${f.note}</span></label></div>`;
+  }).join("");
+  document.querySelectorAll("#fundlist input[type=checkbox]").forEach(cb=>cb.addEventListener("change",()=>{state.fund[cb.dataset.i]=cb.checked;save();refresh();}));
+}
+
+/* ---------- drawer ---------- */
+const ovl=document.getElementById("ovl"),drawer=document.getElementById("drawer");
+let cur=null,curTab="overview";
+function openDrawer(slug,tab){cur=S.find(s=>s.slug===slug);curTab=tab||"overview";renderDrawer();ovl.classList.add("on");drawer.classList.add("on");document.getElementById("d-close").focus();}
+function closeDrawer(){ovl.classList.remove("on");drawer.classList.remove("on");}
+ovl.addEventListener("click",closeDrawer);
+document.getElementById("d-close").addEventListener("click",closeDrawer);
+document.addEventListener("keydown",e=>{if(e.key==="Escape")closeDrawer();});
+function renderDrawer(){
+  const s=cur; if(!s)return;
+  document.getElementById("d-pill").textContent=STATUS[s.status].label+" · "+s.tier;
+  const pl=document.getElementById("d-pill"); pl.style.background=STATUS[s.status].soft; pl.style.color=STATUS[s.status].c;
+  document.getElementById("d-title").textContent=s.name;
+  document.getElementById("d-city").textContent=s.city;
+  const tabs=[["overview","Overview"],["checklist","Checklist"],["contacts","Contacts & log"]];
+  if(s.email)tabs.push(["email","Email draft"]);
+  tabs.push(["watch","Watch"]);
+  document.getElementById("d-tabs").innerHTML=tabs.map(([k,l])=>`<button class="tab" role="tab" aria-selected="${k===curTab}" data-tab="${k}">${l}</button>`).join("");
+  document.querySelectorAll(".tab").forEach(t=>t.addEventListener("click",()=>{curTab=t.dataset.tab;renderDrawer();}));
+  const b=document.getElementById("d-body");
+  if(curTab==="overview"){
+    b.innerHTML=`${s.slug==="ubc"||s.slug==="toronto"||s.slug==="mcmaster"?`<div class="warn">This school cannot host a July–August 2027 elective. The tasks here target ${s.slug==="ubc"?"a start between November 2027 and June 2028":"the Jan–Aug 2028 cycle"} — only usable if UEA permits the elective in that period (Plan B in ACTION_PLAN.md).</div>`:""}
+      <h4>Summary</h4><p style="margin:0 0 4px">${s.head}</p>
+      <h4>Timing</h4><p style="margin:0">${s.window}</p>
+      <h4>Costs</h4><p style="margin:0">${s.fees}</p>
+      ${s.fine?`<h4>Requirements and notes</h4><p style="margin:0">${s.fine}</p>`:""}
+      ${s.q&&s.q.length?`<h4>Open questions (the email asks these)</h4><ul class="qlist" style="margin:0;padding-left:18px">${s.q.map(q=>`<li>${q}</li>`).join("")}</ul>`:""}`;
+  } else if(curTab==="checklist"){
+    b.innerHTML=`<h4>Tasks — ticks save automatically</h4>`+s.tasks.map(([txt,due],i)=>{
+      const done=taskDone(s.slug,i);
+      return `<div class="task ${done?"done":""}"><input type="checkbox" id="t${i}" ${done?"checked":""} data-i="${i}"><label for="t${i}">${txt}${due?` <span class="due mono">· ${due}</span>`:""}</label></div>`;
+    }).join("")+`<p class="note" style="margin-top:14px">Documents shared across all applications (serology, police certificate, insurance) are tracked separately: click the Documents card at the top of the main page.</p>`;
+    b.querySelectorAll("input[type=checkbox]").forEach(cb=>cb.addEventListener("change",()=>{
+      state.tasks[s.slug]=state.tasks[s.slug]||{};state.tasks[s.slug][cb.dataset.i]=cb.checked;save();refresh();renderDrawer();
+    }));
+  } else if(curTab==="contacts"){
+    const log=state.log[s.slug]||[];
+    b.innerHTML=`<h4>Published contacts</h4>`+s.contacts.map(c=>`<div class="contact-box"><b>${c.r}</b><span class="mono">${c.e}${c.p?" · "+c.p:""}</span></div>`).join("")
+      +`<p class="note">Most schools prohibit contacting physicians or departments directly before approval. Contact only the offices listed above.</p>
+      <h4>Contact log</h4>`+(log.length?log.map(L=>`<div class="logrow"><span class="mono">${L.d}</span>${L.t}</div>`).join(""):`<p class="note">No contact logged. Record each email sent and call made here, with the date. Follow-up schedule: reply nudge after 7–10 working days; phone call 5 working days after that.</p>`)
+      +`<div class="logform"><input id="logtxt" placeholder="e.g. Sent enquiry email / Called — spoke to J, rounds open 24 May"><button class="solid" id="logadd">Log</button></div>`;
+    b.querySelector("#logadd").addEventListener("click",()=>{
+      const v=b.querySelector("#logtxt").value.trim(); if(!v)return;
+      state.log[s.slug]=state.log[s.slug]||[];
+      state.log[s.slug].push({d:new Date().toISOString().slice(0,10),t:v});save();renderDrawer();refresh();
+    });
+  } else if(curTab==="email"&&s.email){
+    b.innerHTML=`<h4>Draft email — replace the [bracketed] fields before sending</h4>
+      <div class="kv" style="margin-bottom:10px"><dt>To</dt><dd class="mono">${s.email.to}</dd><dt>Subject</dt><dd>${s.email.subj}</dd></div>
+      <pre class="email" id="emailbody">${s.email.body}</pre>
+      <div class="btnrow"><button class="solid" id="copyBtn">Copy email text</button><span class="note" id="copied" style="align-self:center"></span></div>
+      <p class="note" style="margin-top:12px">If there is no reply within 7–10 working days, send a short follow-up in the same thread. If there is still no reply after 5 further working days, phone (scripts are in output/PHONE_SCRIPTS.md). Record each contact in the Contacts tab.</p>`;
+    b.querySelector("#copyBtn").addEventListener("click",()=>{
+      navigator.clipboard.writeText(`To: ${s.email.to}\nSubject: ${s.email.subj}\n\n${s.email.body}`).then(()=>{b.querySelector("#copied").textContent="Copied ✓";});
+    });
+  } else if(curTab==="watch"){
+    b.innerHTML=`<h4>Items to re-check, and how often</h4><p style="margin:0">${s.watch||"—"}</p>
+    <p class="note" style="margin-top:14px">The full watchlist (14 items with URLs) lives in the project folder: <span class="mono">output/WATCHLIST.md</span>.</p>`;
+  }
+}
+
+/* ---------- docs track in stats: click-through modal via drawer-less simple panel ---------- */
+/* Render docs as its own pseudo-school drawer */
+document.getElementById("stats").addEventListener("click",e=>{
+  const card=e.target.closest(".stat");
+  if(!card)return;
+  const idx=[...card.parentNode.children].indexOf(card);
+  if(idx===2){openDocs();}
+});
+function openDocs(){
+  cur=null;
+  document.getElementById("d-pill").textContent="Shared requirements";
+  const pl=document.getElementById("d-pill");pl.style.background="var(--maple-soft)";pl.style.color="var(--maple)";
+  document.getElementById("d-title").textContent="Documents track";
+  document.getElementById("d-city").textContent="Required once; used across all applications";
+  document.getElementById("d-tabs").innerHTML="";
+  const b=document.getElementById("d-body");
+  b.innerHTML=`<h4>Document tasks — dates assume a July–August 2027 elective</h4>`+DOCS.map(([txt,due],i)=>{
+    const done=!!state.docs[i];
+    return `<div class="task ${done?"done":""}"><input type="checkbox" id="d${i}" ${done?"checked":""} data-i="${i}"><label for="d${i}">${txt}${due?` <span class="due mono">· ${due}</span>`:""}</label></div>`;
+  }).join("")+`<p class="note" style="margin-top:14px">Full detail (costs, validity windows, ordering dates) is in <span class="mono">output/DOCUMENT_CHECKLIST.md</span>. Note: some schools require the police certificate to be under 6 months old at the elective start date, so it must not be ordered before March 2027.</p>`;
+  b.querySelectorAll("input[type=checkbox]").forEach(cb=>cb.addEventListener("change",()=>{state.docs[cb.dataset.i]=cb.checked;save();refresh();}));
+  ovl.classList.add("on");drawer.classList.add("on");
+}
+
+/* ---------- export / import ---------- */
+document.getElementById("exportBtn").addEventListener("click",()=>{
+  const blob=new Blob([JSON.stringify(state,null,1)],{type:"application/json"});
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="elective-tracker-progress.json";a.click();URL.revokeObjectURL(a.href);
+});
+document.getElementById("importBtn").addEventListener("click",()=>document.getElementById("importFile").click());
+document.getElementById("importFile").addEventListener("change",e=>{
+  const f=e.target.files[0];if(!f)return;
+  f.text().then(t=>{try{state=Object.assign({tasks:{},docs:{},log:{},fund:{}},JSON.parse(t));save();refresh();}catch(err){alert("That file couldn't be read as a progress backup.");}});
+});
+
+refresh();
+boot();
+</script>
