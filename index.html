@@ -76,6 +76,7 @@
   #mapwrap{position:relative;background:var(--water)}
   #map{display:block;width:100%;height:auto;cursor:grab;touch-action:none;user-select:none}
   #map.grabbing{cursor:grabbing}
+  #mapview{will-change:transform}
   #mapctrls{position:absolute;top:10px;right:10px;display:flex;flex-direction:column;gap:6px;z-index:3}
   #mapctrls button{width:32px;height:32px;border:1px solid var(--line);background:color-mix(in srgb,var(--panel) 90%,transparent);color:var(--ink);border-radius:8px;font-size:18px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
   #mapctrls button:hover{border-color:var(--muted)}
@@ -195,7 +196,7 @@
         <button id="zout" type="button" aria-label="Zoom out" title="Zoom out">−</button>
         <button id="zreset" type="button" aria-label="Reset map view" title="Reset view">⟳</button>
       </div>
-      <div id="maphint">Drag to pan · pinch or +/− to zoom</div>
+      <div id="maphint">Scroll or pinch to zoom · drag to pan</div>
       <div id="tip"></div>
     </div>
   </section>
@@ -543,32 +544,47 @@ function showTip(s,x,y){
 }
 function nextTask(s){for(let i=0;i<s.tasks.length;i++) if(!taskDone(s.slug,i)) return s.tasks[i][0]; return null;}
 
-/* ---------- map pan & zoom ---------- */
+/* ---------- map pan & zoom (rAF-eased, smooth) ---------- */
 let panMoved=false;
-const view={k:1,x:0,y:0};
+const view={k:1,x:0,y:0};      // currently rendered
+const goal={k:1,x:0,y:0};      // where we are easing toward
+let raf=null;
 function applyView(){mapview.setAttribute("transform",`translate(${view.x.toFixed(2)} ${view.y.toFixed(2)}) scale(${view.k.toFixed(4)})`);}
-function clampView(){
-  view.k=Math.max(1,Math.min(8,view.k));
-  view.x=Math.max(W*(1-view.k),Math.min(0,view.x));   // keep the scaled map covering the frame
-  view.y=Math.max(H*(1-view.k),Math.min(0,view.y));
+function clamp(o){
+  o.k=Math.max(1,Math.min(8,o.k));
+  o.x=Math.max(W*(1-o.k),Math.min(0,o.x));   // keep the scaled map covering the frame
+  o.y=Math.max(H*(1-o.k),Math.min(0,o.y));
 }
-function zoomAt(cx,cy,factor){                          // cx,cy in svg user units (0..W, 0..H)
-  const k0=view.k; view.k=Math.max(1,Math.min(8,k0*factor)); const f=view.k/k0;
-  view.x=cx-(cx-view.x)*f; view.y=cy-(cy-view.y)*f;
-  clampView(); applyView();
+function tick(){
+  const dx=goal.x-view.x, dy=goal.y-view.y, dk=goal.k-view.k;
+  if(Math.abs(dx)<0.3 && Math.abs(dy)<0.3 && Math.abs(dk)<0.0008){
+    view.x=goal.x; view.y=goal.y; view.k=goal.k; applyView(); raf=null; return;
+  }
+  const e=0.22;                 // easing factor per frame → ~150ms glide
+  view.x+=dx*e; view.y+=dy*e; view.k+=dk*e;
+  applyView(); raf=requestAnimationFrame(tick);
 }
+function ease(){ if(raf==null) raf=requestAnimationFrame(tick); }
 function toSvg(clientX,clientY){const r=svg.getBoundingClientRect();return [ (clientX-r.left)/r.width*W, (clientY-r.top)/r.height*H ];}
-// Pinch (trackpads emit ctrlKey wheel) or Ctrl/Cmd + wheel zooms; a plain wheel still scrolls the page.
+function zoomAt(cx,cy,factor){   // anchor the point under the cursor, then glide toward it
+  const k0=goal.k; goal.k=Math.max(1,Math.min(8,k0*factor)); const f=goal.k/k0;
+  goal.x=cx-(cx-goal.x)*f; goal.y=cy-(cy-goal.y)*f;
+  clamp(goal); ease();
+}
+// Scroll or pinch to zoom — proportional to scroll speed so it feels smooth (not stepped).
 svg.addEventListener("wheel",e=>{
-  if(!(e.ctrlKey||e.metaKey))return;
   e.preventDefault();
+  let dy=e.deltaY; if(e.deltaMode===1)dy*=16; else if(e.deltaMode===2)dy*=100;
   const [cx,cy]=toSvg(e.clientX,e.clientY);
-  zoomAt(cx,cy, e.deltaY<0?1.12:1/1.12);
+  zoomAt(cx,cy, Math.max(0.6,Math.min(1.6,Math.exp(-dy*0.002))));
 },{passive:false});
-// Drag to pan (mouse + touch, via pointer events).
+// Drag to pan — immediate 1:1 tracking (no easing while the finger/mouse is down).
 let drag=null;
 svg.addEventListener("pointerdown",e=>{
-  panMoved=false; drag={sx:e.clientX,sy:e.clientY,x0:view.x,y0:view.y};
+  panMoved=false;
+  if(raf!=null){cancelAnimationFrame(raf);raf=null;}
+  view.k=goal.k; view.x=goal.x; view.y=goal.y;      // settle any in-flight glide
+  drag={sx:e.clientX,sy:e.clientY,x0:view.x,y0:view.y};
   try{svg.setPointerCapture(e.pointerId);}catch(_){}
   svg.classList.add("grabbing"); if(tip)tip.style.opacity=0;
 });
@@ -577,16 +593,16 @@ svg.addEventListener("pointermove",e=>{
   const r=svg.getBoundingClientRect();
   if(Math.abs(e.clientX-drag.sx)+Math.abs(e.clientY-drag.sy)>4)panMoved=true;
   view.x=drag.x0+(e.clientX-drag.sx)/r.width*W; view.y=drag.y0+(e.clientY-drag.sy)/r.height*H;
-  clampView(); applyView();
+  clamp(view); goal.x=view.x; goal.y=view.y; goal.k=view.k; applyView();
 });
 function endDrag(e){if(!drag)return;drag=null;svg.classList.remove("grabbing");try{svg.releasePointerCapture(e.pointerId);}catch(_){}}
 svg.addEventListener("pointerup",endDrag);
 svg.addEventListener("pointercancel",endDrag);
-document.getElementById("zin").addEventListener("click",()=>zoomAt(W/2,H/2,1.35));
-document.getElementById("zout").addEventListener("click",()=>zoomAt(W/2,H/2,1/1.35));
-document.getElementById("zreset").addEventListener("click",()=>{view.k=1;view.x=0;view.y=0;applyView();});
+document.getElementById("zin").addEventListener("click",()=>zoomAt(W/2,H/2,1.6));
+document.getElementById("zout").addEventListener("click",()=>zoomAt(W/2,H/2,1/1.6));
+document.getElementById("zreset").addEventListener("click",()=>{goal.k=1;goal.x=0;goal.y=0;clamp(goal);ease();});
 // Double-click / double-tap to zoom in toward the point.
-svg.addEventListener("dblclick",e=>{e.preventDefault();const [cx,cy]=toSvg(e.clientX,e.clientY);zoomAt(cx,cy,1.6);});
+svg.addEventListener("dblclick",e=>{e.preventDefault();const [cx,cy]=toSvg(e.clientX,e.clientY);zoomAt(cx,cy,1.8);});
 
 /* ---------- rings + stats + lists ---------- */
 function refresh(){
