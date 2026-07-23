@@ -57,6 +57,7 @@
   .ribbon .count{font-size:13px;color:var(--muted)}
 
   h1{font-size:clamp(26px,4vw,36px);line-height:1.15;margin:0 0 6px;text-wrap:balance;font-weight:600}
+  .greeting{font-size:15px;font-weight:600;letter-spacing:.01em;color:var(--maple);margin:0 0 6px}
   .sub{color:var(--muted);max-width:64ch;margin:0 0 26px}
 
   .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:30px}
@@ -161,6 +162,7 @@
 
 <main>
   <div class="ribbon" id="ribbon"></div>
+  <p class="greeting" id="greeting" aria-live="polite"></p>
   <h1 class="serif">Canada visiting elective — application tracker</h1>
   <p class="sub">All 17 Canadian medical schools, positioned on the map, researched for a Norwich Medical School (UEA) student. Each marker shows the school's status and how many application tasks are complete. Hover for a summary; click for details, the task checklist, contacts, and the drafted enquiry email. Progress is saved in this browser; Export creates a backup file that can be imported on another device.</p>
 
@@ -665,4 +667,19 @@ document.getElementById("importFile").addEventListener("change",e=>{
 
 refresh();
 boot();
+// Rotating greeting — advances one step on every visit/load so it cycles through the list.
+(function cycleGreeting(){
+  const el=document.getElementById("greeting");
+  if(!el)return;
+  const N="Nehal";
+  const greetings=[
+    "Hi, "+N+" 👋","Sup, "+N,"Howdy, "+N+" 🤠","Hey there, "+N,
+    "Welcome back, "+N,"Yo, "+N,"Bonjour, "+N+" 🇨🇦","G'day, "+N,
+    "Good to see you, "+N,"Oh hey, "+N,"Ahoy, "+N+" ⚓","What's up, "+N,
+    "Salut, "+N,"Look who's back — "+N,"Nice to see you, "+N,"Hiya, "+N
+  ];
+  let i=0;
+  try{i=parseInt(localStorage.getItem("greetIdx")||"-1",10);if(!Number.isFinite(i))i=-1;i+=1;localStorage.setItem("greetIdx",String(i));}catch(e){i=0;}
+  el.textContent=greetings[((i%greetings.length)+greetings.length)%greetings.length];
+})();
 </script>
