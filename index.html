@@ -77,6 +77,8 @@
   #map{display:block;width:100%;height:auto;cursor:grab;touch-action:none;user-select:none}
   #map.grabbing{cursor:grabbing}
   #mapview{will-change:transform}
+  .marker{cursor:pointer;filter:drop-shadow(0 1.5px 2px rgba(0,0,0,.45))}
+  .leaders line,.leaders circle{pointer-events:none}
   #mapctrls{position:absolute;top:10px;right:10px;display:flex;flex-direction:column;gap:6px;z-index:3}
   #mapctrls button{width:32px;height:32px;border:1px solid var(--line);background:color-mix(in srgb,var(--panel) 90%,transparent);color:var(--ink);border-radius:8px;font-size:18px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
   #mapctrls button:hover{border-color:var(--muted)}
@@ -503,20 +505,40 @@ el("path",{d:poly(VANI),fill:"var(--land)",stroke:"var(--land-line)","stroke-wid
   el("text",{x,y,fill:"var(--muted)","font-size":"11","letter-spacing":"3","text-anchor":"middle",opacity:".55","font-family":"system-ui"}).textContent=t;
 });
 
-/* marker nudges for the southern-Ontario cluster */
-const NUDGE={western:[-14,10],mcmaster:[-4,14],toronto:[6,-2],queens:[10,-8],ottawa:[2,-12],montreal:[10,10],mcgill:[-2,-10],sherbrooke:[16,2]};
 const tip=document.getElementById("tip");
-const R=13, CIRC=2*Math.PI*R;
+const R=11, CIRC=2*Math.PI*R;
 const markerEls={};
-S.forEach(s=>{
-  let [x,y]=P(s.lon,s.lat); const n=NUDGE[s.slug]; if(n){x+=n[0];y+=n[1];}
-  s._x=x; s._y=y;
-  const g=el("g",{class:"marker",transform:`translate(${x},${y})`,tabindex:"0",role:"button","aria-label":s.name});
+// --- Declutter: relax the markers apart (force layout) while a spring holds each near its true
+//     map point, then draw a leader line + dot so every floating bubble still marks its real city.
+const nodes=S.map(s=>{const [tx,ty]=P(s.lon,s.lat); return {s,tx,ty,x:tx,y:ty};});
+const SEP=40;                                   // minimum gap between bubble centres
+for(let it=0; it<200; it++){
+  for(let i=0;i<nodes.length;i++) for(let j=i+1;j<nodes.length;j++){
+    const a=nodes[i], b=nodes[j];
+    let dx=b.x-a.x, dy=b.y-a.y, d=Math.hypot(dx,dy)||0.01;
+    if(d<SEP){ const p=(SEP-d)/2, ux=dx/d, uy=dy/d; a.x-=ux*p; a.y-=uy*p; b.x+=ux*p; b.y+=uy*p; }
+  }
+  for(const n of nodes){ n.x+=(n.tx-n.x)*0.05; n.y+=(n.ty-n.y)*0.05; }   // weak pull home
+}
+const cx0=nodes.reduce((a,n)=>a+n.x,0)/nodes.length, cy0=nodes.reduce((a,n)=>a+n.y,0)/nodes.length;
+// leader lines + true-location dots, drawn under the bubbles
+const leaders=el("g",{class:"leaders"});
+nodes.forEach(n=>{
+  if(Math.hypot(n.x-n.tx,n.y-n.ty)>3){
+    el("line",{x1:n.tx.toFixed(1),y1:n.ty.toFixed(1),x2:n.x.toFixed(1),y2:n.y.toFixed(1),stroke:"var(--muted)","stroke-width":"1",opacity:".55"},leaders);
+    el("circle",{cx:n.tx.toFixed(1),cy:n.ty.toFixed(1),r:"2.6",fill:"var(--muted)"},leaders);
+  }
+});
+nodes.forEach(n=>{
+  const s=n.s, x=n.x, y=n.y; s._x=x; s._y=y;
+  const g=el("g",{class:"marker",transform:`translate(${x.toFixed(1)},${y.toFixed(1)})`,tabindex:"0",role:"button","aria-label":s.name});
   el("circle",{r:R,fill:"var(--panel)",stroke:"var(--line)","stroke-width":"1"},g);
   el("circle",{r:R,fill:"none",stroke:"var(--line-soft)","stroke-width":"3"},g);
   const ring=el("circle",{r:R,fill:"none",stroke:STATUS[s.status].c,"stroke-width":"3","stroke-linecap":"round","stroke-dasharray":`0 ${CIRC}`,transform:"rotate(-90)"},g);
-  el("circle",{class:"core",r:5,fill:STATUS[s.status].c},g);
-  const lbl=el("text",{y:-R-6,"text-anchor":"middle","font-size":"11.5","font-weight":"600",fill:"var(--ink)","font-family":"system-ui"},g); lbl.textContent=s.name;
+  el("circle",{class:"core",r:"4.5",fill:STATUS[s.status].c},g);
+  // label anchored on the side facing away from the cluster centre, with a paper halo for legibility
+  const dxc=x-cx0, anchor=Math.abs(dxc)<10?"middle":(dxc>0?"start":"end"), lx=anchor==="middle"?0:(dxc>0?R+4:-(R+4));
+  const lbl=el("text",{x:lx,y:-R-5,"text-anchor":anchor,"font-size":"11","font-weight":"600",fill:"var(--ink)","font-family":"system-ui","paint-order":"stroke",stroke:"var(--paper)","stroke-width":"3.5","stroke-linejoin":"round"},g); lbl.textContent=s.name;
   markerEls[s.slug]={ring};
   g.addEventListener("mousemove",ev=>{
     if(drag)return;
@@ -550,33 +572,34 @@ const view={k:1,x:0,y:0};      // currently rendered
 const goal={k:1,x:0,y:0};      // where we are easing toward
 let raf=null;
 function applyView(){mapview.setAttribute("transform",`translate(${view.x.toFixed(2)} ${view.y.toFixed(2)}) scale(${view.k.toFixed(4)})`);}
+const MAXK=16;                  // allow deep zoom (Paradox-style)
 function clamp(o){
-  o.k=Math.max(1,Math.min(8,o.k));
+  o.k=Math.max(1,Math.min(MAXK,o.k));
   o.x=Math.max(W*(1-o.k),Math.min(0,o.x));   // keep the scaled map covering the frame
   o.y=Math.max(H*(1-o.k),Math.min(0,o.y));
 }
 function tick(){
   const dx=goal.x-view.x, dy=goal.y-view.y, dk=goal.k-view.k;
-  if(Math.abs(dx)<0.3 && Math.abs(dy)<0.3 && Math.abs(dk)<0.0008){
+  if(Math.abs(dx)<0.4 && Math.abs(dy)<0.4 && Math.abs(dk)<0.003){
     view.x=goal.x; view.y=goal.y; view.k=goal.k; applyView(); raf=null; return;
   }
-  const e=0.22;                 // easing factor per frame → ~150ms glide
+  const e=0.4;                  // snappy ease — ~70ms, resolves fast like a Paradox map
   view.x+=dx*e; view.y+=dy*e; view.k+=dk*e;
   applyView(); raf=requestAnimationFrame(tick);
 }
 function ease(){ if(raf==null) raf=requestAnimationFrame(tick); }
 function toSvg(clientX,clientY){const r=svg.getBoundingClientRect();return [ (clientX-r.left)/r.width*W, (clientY-r.top)/r.height*H ];}
 function zoomAt(cx,cy,factor){   // anchor the point under the cursor, then glide toward it
-  const k0=goal.k; goal.k=Math.max(1,Math.min(8,k0*factor)); const f=goal.k/k0;
+  const k0=goal.k; goal.k=Math.max(1,Math.min(MAXK,k0*factor)); const f=goal.k/k0;
   goal.x=cx-(cx-goal.x)*f; goal.y=cy-(cy-goal.y)*f;
   clamp(goal); ease();
 }
-// Scroll or pinch to zoom — proportional to scroll speed so it feels smooth (not stepped).
+// Scroll or pinch to zoom — decisive per notch, centred on the cursor.
 svg.addEventListener("wheel",e=>{
   e.preventDefault();
   let dy=e.deltaY; if(e.deltaMode===1)dy*=16; else if(e.deltaMode===2)dy*=100;
   const [cx,cy]=toSvg(e.clientX,e.clientY);
-  zoomAt(cx,cy, Math.max(0.6,Math.min(1.6,Math.exp(-dy*0.002))));
+  zoomAt(cx,cy, Math.max(0.45,Math.min(2.2,Math.exp(-dy*0.0028))));
 },{passive:false});
 // Drag to pan — immediate 1:1 tracking (no easing while the finger/mouse is down).
 let drag=null;
@@ -598,11 +621,11 @@ svg.addEventListener("pointermove",e=>{
 function endDrag(e){if(!drag)return;drag=null;svg.classList.remove("grabbing");try{svg.releasePointerCapture(e.pointerId);}catch(_){}}
 svg.addEventListener("pointerup",endDrag);
 svg.addEventListener("pointercancel",endDrag);
-document.getElementById("zin").addEventListener("click",()=>zoomAt(W/2,H/2,1.6));
-document.getElementById("zout").addEventListener("click",()=>zoomAt(W/2,H/2,1/1.6));
+document.getElementById("zin").addEventListener("click",()=>zoomAt(W/2,H/2,1.8));
+document.getElementById("zout").addEventListener("click",()=>zoomAt(W/2,H/2,1/1.8));
 document.getElementById("zreset").addEventListener("click",()=>{goal.k=1;goal.x=0;goal.y=0;clamp(goal);ease();});
 // Double-click / double-tap to zoom in toward the point.
-svg.addEventListener("dblclick",e=>{e.preventDefault();const [cx,cy]=toSvg(e.clientX,e.clientY);zoomAt(cx,cy,1.8);});
+svg.addEventListener("dblclick",e=>{e.preventDefault();const [cx,cy]=toSvg(e.clientX,e.clientY);zoomAt(cx,cy,2.2);});
 
 /* ---------- rings + stats + lists ---------- */
 function refresh(){
