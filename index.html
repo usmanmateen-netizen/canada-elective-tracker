@@ -667,19 +667,37 @@ document.getElementById("importFile").addEventListener("change",e=>{
 
 refresh();
 boot();
-// Rotating greeting — advances one step on every visit/load so it cycles through the list.
+// Greeting — picks a random greeting in a different language on every visit/load.
 (function cycleGreeting(){
   const el=document.getElementById("greeting");
   if(!el)return;
   const N="Nehal";
   const greetings=[
-    "Hi, "+N,"Sup, "+N,"Howdy, "+N,"Hey there, "+N,
-    "Welcome back, "+N,"Yo, "+N,"Bonjour, "+N,"G'day, "+N,
-    "Good to see you, "+N,"Oh hey, "+N,"Ahoy, "+N,"What's up, "+N,
-    "Salut, "+N,"Look who's back — "+N,"Nice to see you, "+N,"Hiya, "+N
+    "Hi, "+N,               // English
+    "Bonjour, "+N,          // French
+    "Hola, "+N,             // Spanish
+    "你好, "+N,              // Chinese
+    "こんにちは, "+N,         // Japanese
+    "السلام علیکم, "+N,     // Urdu
+    "Привет, "+N,           // Russian
+    "Hallo, "+N,            // German
+    "Ciao, "+N,             // Italian
+    "नमस्ते, "+N,            // Hindi
+    "مرحبا, "+N,            // Arabic
+    "안녕하세요, "+N,         // Korean
+    "Olá, "+N,              // Portuguese
+    "Merhaba, "+N,          // Turkish
+    "Γεια σου, "+N,         // Greek
+    "שלום, "+N,             // Hebrew
+    "Habari, "+N,           // Swahili
+    "ਸਤ ਸ੍ਰੀ ਅਕਾਲ, "+N,    // Punjabi
+    "Xin chào, "+N,         // Vietnamese
+    "สวัสดี, "+N            // Thai
   ];
-  let i=0;
-  try{i=parseInt(localStorage.getItem("greetIdx")||"-1",10);if(!Number.isFinite(i))i=-1;i+=1;localStorage.setItem("greetIdx",String(i));}catch(e){i=0;}
-  el.textContent=greetings[((i%greetings.length)+greetings.length)%greetings.length];
+  let i=0,last=-1;
+  try{last=parseInt(localStorage.getItem("greetIdx")||"-1",10);}catch(e){}
+  do{ i=Math.floor(Math.random()*greetings.length); } while(greetings.length>1 && i===last);
+  try{localStorage.setItem("greetIdx",String(i));}catch(e){}
+  el.textContent=greetings[i];
 })();
 </script>
