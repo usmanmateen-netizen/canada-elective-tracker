@@ -76,8 +76,9 @@
   #mapwrap{position:relative;background:var(--water)}
   #map{display:block;width:100%;height:auto;cursor:grab;touch-action:none;user-select:none}
   #map.grabbing{cursor:grabbing}
-  #mapview{will-change:transform}
-  .marker{cursor:pointer;filter:drop-shadow(0 1.5px 2px rgba(0,0,0,.45))}
+  #mapview{will-change:transform;transform-origin:0 0}
+  .marker{cursor:pointer}
+  .marker text{pointer-events:none}          /* labels must never steal hover from a neighbouring dot */
   .leaders line,.leaders circle{pointer-events:none}
   #mapctrls{position:absolute;top:10px;right:10px;display:flex;flex-direction:column;gap:6px;z-index:3}
   #mapctrls button{width:32px;height:32px;border:1px solid var(--line);background:color-mix(in srgb,var(--panel) 90%,transparent);color:var(--ink);border-radius:8px;font-size:18px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
@@ -511,7 +512,7 @@ const markerEls={};
 // --- Declutter: relax the markers apart (force layout) while a spring holds each near its true
 //     map point, then draw a leader line + dot so every floating bubble still marks its real city.
 const nodes=S.map(s=>{const [tx,ty]=P(s.lon,s.lat); return {s,tx,ty,x:tx,y:ty};});
-const SEP=58;                                   // minimum gap between bubble centres (room for labels)
+const SEP=64;                                   // minimum gap between bubble centres (room for labels)
 for(let it=0; it<260; it++){
   for(let i=0;i<nodes.length;i++) for(let j=i+1;j<nodes.length;j++){
     const a=nodes[i], b=nodes[j];
@@ -547,6 +548,7 @@ nodes.forEach(n=>{
     const wrap=document.getElementById("mapwrap").getBoundingClientRect();
     showTip(s, ev.clientX-wrap.left, ev.clientY-wrap.top);
   });
+  g.addEventListener("mouseenter",()=>{ if(!drag) mapview.appendChild(g); });   // hovered bubble comes to the front
   g.addEventListener("mouseleave",()=>tip.style.opacity=0);
   g.addEventListener("focus",()=>{const r=svg.getBoundingClientRect();showTip(s,(x/W)*r.width,(y/H)*r.height);});
   g.addEventListener("blur",()=>tip.style.opacity=0);
@@ -573,7 +575,7 @@ let panMoved=false;
 const view={k:1,x:0,y:0};      // currently rendered
 const goal={k:1,x:0,y:0};      // where we are easing toward
 let raf=null;
-function applyView(){mapview.setAttribute("transform",`translate(${view.x.toFixed(2)} ${view.y.toFixed(2)}) scale(${view.k.toFixed(4)})`);}
+function applyView(){mapview.style.transform=`translate(${view.x.toFixed(2)}px,${view.y.toFixed(2)}px) scale(${view.k.toFixed(4)})`;}   // CSS transform → GPU-composited, no SVG repaint
 const MAXK=16;                  // allow deep zoom (Paradox-style)
 function clamp(o){
   o.k=Math.max(1,Math.min(MAXK,o.k));
@@ -585,7 +587,7 @@ function tick(){
   if(Math.abs(dx)<0.4 && Math.abs(dy)<0.4 && Math.abs(dk)<0.003){
     view.x=goal.x; view.y=goal.y; view.k=goal.k; applyView(); raf=null; return;
   }
-  const e=0.4;                  // snappy ease — ~70ms, resolves fast like a Paradox map
+  const e=0.32;                 // smooth glide, still quick — Paradox-style
   view.x+=dx*e; view.y+=dy*e; view.k+=dk*e;
   applyView(); raf=requestAnimationFrame(tick);
 }
@@ -601,7 +603,7 @@ svg.addEventListener("wheel",e=>{
   e.preventDefault();
   let dy=e.deltaY; if(e.deltaMode===1)dy*=16; else if(e.deltaMode===2)dy*=100;
   const [cx,cy]=toSvg(e.clientX,e.clientY);
-  zoomAt(cx,cy, Math.max(0.45,Math.min(2.2,Math.exp(-dy*0.0028))));
+  zoomAt(cx,cy, Math.max(0.6,Math.min(1.8,Math.exp(-dy*0.0022))));   // gentler per-notch → smooth on a wheel
 },{passive:false});
 // Drag to pan — immediate 1:1 tracking (no easing while the finger/mouse is down).
 let drag=null;
