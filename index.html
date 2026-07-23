@@ -672,27 +672,54 @@ boot();
   const el=document.getElementById("greeting");
   if(!el)return;
   const N="Nehal";
+  // Broad multilingual set. Deliberately excludes Hebrew, Hindi, Indonesian, Polish, Romanian.
   const greetings=[
-    "Hi, "+N,               // English
-    "Bonjour, "+N,          // French
-    "Hola, "+N,             // Spanish
-    "你好, "+N,              // Chinese
-    "こんにちは, "+N,         // Japanese
-    "السلام علیکم, "+N,     // Urdu
-    "Привет, "+N,           // Russian
-    "Hallo, "+N,            // German
-    "Ciao, "+N,             // Italian
-    "नमस्ते, "+N,            // Hindi
-    "مرحبا, "+N,            // Arabic
-    "안녕하세요, "+N,         // Korean
-    "Olá, "+N,              // Portuguese
-    "Merhaba, "+N,          // Turkish
-    "Γεια σου, "+N,         // Greek
-    "שלום, "+N,             // Hebrew
-    "Habari, "+N,           // Swahili
-    "ਸਤ ਸ੍ਰੀ ਅਕਾਲ, "+N,    // Punjabi
-    "Xin chào, "+N,         // Vietnamese
-    "สวัสดี, "+N            // Thai
+    "Hi, "+N,            // English
+    "Bonjour, "+N,       // French
+    "Hola, "+N,          // Spanish
+    "你好, "+N,           // Chinese
+    "こんにちは, "+N,      // Japanese
+    "السلام علیکم, "+N,  // Urdu
+    "Привет, "+N,        // Russian
+    "Hallo, "+N,         // German
+    "Ciao, "+N,          // Italian
+    "مرحبا, "+N,         // Arabic
+    "안녕하세요, "+N,      // Korean
+    "Olá, "+N,           // Portuguese
+    "Merhaba, "+N,       // Turkish
+    "Γεια σου, "+N,      // Greek
+    "Habari, "+N,        // Swahili
+    "ਸਤ ਸ੍ਰੀ ਅਕਾਲ, "+N, // Punjabi
+    "Xin chào, "+N,      // Vietnamese
+    "สวัสดี, "+N,        // Thai
+    "Hoi, "+N,           // Dutch
+    "Hej, "+N,           // Swedish
+    "Hei, "+N,           // Norwegian
+    "Moi, "+N,           // Finnish
+    "Ahoj, "+N,          // Czech
+    "Szia, "+N,          // Hungarian
+    "Привіт, "+N,        // Ukrainian
+    "سلام, "+N,          // Persian
+    "Kumusta, "+N,       // Filipino
+    "Sawubona, "+N,      // Zulu
+    "ሰላም, "+N,           // Amharic
+    "გამარჯობა, "+N,     // Georgian
+    "Բարև, "+N,          // Armenian
+    "Dia duit, "+N,      // Irish
+    "Shwmae, "+N,        // Welsh
+    "Bok, "+N,           // Croatian
+    "Здраво, "+N,        // Serbian
+    "Labas, "+N,         // Lithuanian
+    "Tere, "+N,          // Estonian
+    "নমস্কার, "+N,        // Bengali
+    "வணக்கம், "+N,        // Tamil
+    "Kia ora, "+N,       // Maori
+    "Aloha, "+N,         // Hawaiian
+    "Bula, "+N,          // Fijian
+    "Saluton, "+N,       // Esperanto
+    "Salve, "+N,         // Latin
+    "Сәлем, "+N,         // Kazakh
+    "ជំរាបសួរ, "+N       // Khmer
   ];
   let i=0,last=-1;
   try{last=parseInt(localStorage.getItem("greetIdx")||"-1",10);}catch(e){}
