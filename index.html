@@ -203,16 +203,15 @@
   <div class="d-body" id="d-body"></div>
 </aside>
 
-<div id="gate" hidden>
+<div id="gate">
   <div class="gate-box">
     <svg class="leaf" viewBox="0 0 24 24" aria-hidden="true" style="width:26px;height:26px"><path fill="var(--maple)" d="M12 1.5l1.8 3.6 2.4-1.2-.7 3.9 3.4-.6-1.7 3 3.3 1.3-2.7 2 2 2.6-3.7.3.5 3.6-3.4-1.6-.4 3.9L12 20l-.8 2.3-.4-3.9-3.4 1.6.5-3.6-3.7-.3 2-2.6-2.7-2 3.3-1.3-1.7-3 3.4.6-.7-3.9 2.4 1.2z"/></svg>
-    <h2 class="serif">Sync your progress</h2>
-    <p>Enter your PIN to load your saved progress and keep this device in sync with your others. You can also just close this and use the tracker on this device only.</p>
-    <input type="password" id="pinInput" inputmode="numeric" autocomplete="off" aria-label="PIN">
-    <div class="gate-row"><input type="checkbox" id="pinRemember" checked style="width:15px;height:15px"><label for="pinRemember">Remember on this device</label></div>
-    <button class="solid" id="pinGo">Connect</button>
+    <h2 class="serif">Nehal's elective tracker</h2>
+    <p>This tracker is private. Enter your password to open it.</p>
+    <input type="password" id="pinInput" autocomplete="current-password" aria-label="Password" placeholder="Password">
+    <div class="gate-row"><input type="checkbox" id="pinRemember" checked style="width:15px;height:15px"><label for="pinRemember">Keep me signed in on this device</label></div>
+    <button class="solid" id="pinGo">Unlock</button>
     <div class="gate-err" id="pinErr"></div>
-    <div class="gate-alt"><a href="#" id="pinOffline">Not now — use this device only</a></div>
   </div>
 </div>
 <footer>Research current as of 23 July 2026. Dates assume the UEA Year-4 abroad elective period, expected July–August 2027 (unconfirmed — see the Documents task). Schools that cannot host that period are flagged. This page does not send email; drafts are copied and sent manually.</footer>
@@ -441,28 +440,32 @@ async function unlock(pin,remember,silent){
     const sb=document.getElementById("syncBtn");if(sb){sb.textContent="Synced ✓";sb.hidden=false;}
     refresh();return true;
   }catch(e){
+    if(e&&e.status===400){try{localStorage.removeItem("tk_pin");sessionStorage.removeItem("tk_pin");}catch(_){}}
     if(!silent){
       const msg=(e&&e.status===400)
-        ? "That PIN wasn't recognised. Check it and try again."
-        : "Couldn't reach the sync server from this browser. Your progress is still saved on this device. Sync can be blocked by opening the file directly (use the https:// web link), a private/incognito window, an ad-blocker, or a school/work network.";
+        ? "That password wasn't recognised. Check it and try again."
+        : "Couldn't reach the server to check your password (a private window, ad-blocker, or restricted network can block it). Check your connection and try again.";
       document.getElementById("pinErr").textContent=msg;
     }
     return false;}}
 function openGate(){const g=document.getElementById("gate");document.getElementById("pinErr").textContent="";g.hidden=false;const i=document.getElementById("pinInput");i.value="";i.focus();}
 async function boot(){
-  // The app is ALWAYS usable and always saves on this device. Cloud sync is optional.
+  // Private tracker: the styled gate covers the whole page until the correct password is entered.
+  // A remembered device auto-unlocks so Nehal only signs in once per device.
   const gate=document.getElementById("gate");
   const go=()=>unlock(document.getElementById("pinInput").value.trim(),document.getElementById("pinRemember").checked,false);
   document.getElementById("pinGo").addEventListener("click",go);
   document.getElementById("pinInput").addEventListener("keydown",e=>{if(e.key==="Enter")go();});
-  document.getElementById("pinOffline").addEventListener("click",e=>{e.preventDefault();gate.hidden=true;setSync(PIN?"Synced":"Saved on this device");});
-  if(!CLOUD){setSync("Saved on this device");return;}
+  if(!CLOUD){gate.hidden=true;setSync("Saved on this device");return;}   // no backend configured → can't gate
   const syncBtn=document.getElementById("syncBtn");
   syncBtn.hidden=false;
   syncBtn.addEventListener("click",openGate);
+  // Auto-unlock if this device is remembered (or has a session password).
   let saved=null;try{saved=sessionStorage.getItem("tk_pin")||localStorage.getItem("tk_pin");}catch(e){}
   if(saved&&await unlock(saved,!!localStorage.getItem("tk_pin"),true)){syncBtn.textContent="Synced ✓";return;}
-  setSync("Saved on this device · tap Sync for your other devices");}
+  // Otherwise the gate stays up (it is visible by default) — focus the password box.
+  document.getElementById("pinErr").textContent="";
+  try{document.getElementById("pinInput").focus();}catch(e){}}
 function taskDone(slug,i){return !!(state.tasks[slug]&&state.tasks[slug][i]);}
 function progress(s){const t=s.tasks.length;let d=0;for(let i=0;i<t;i++) if(taskDone(s.slug,i)) d++;return {d,t};}
 
