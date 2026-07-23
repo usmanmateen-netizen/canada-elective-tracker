@@ -1,7 +1,7 @@
 -- Canada Elective Tracker — Supabase setup
 -- For a DEDICATED project (nothing else lives here), so the public schema is used.
 -- Run once in: Supabase dashboard → SQL Editor → New query → paste → Run.
--- PIN (5913) is baked in.
+-- Password (nehal84) is baked in as a sha256 hash. (Live DB updated to this on 2026-07-23.)
 
 create extension if not exists pgcrypto;
 
@@ -17,7 +17,7 @@ create table if not exists public.elective_tracker (
 alter table public.elective_tracker enable row level security;
 
 insert into public.elective_tracker (id, pin_hash, data)
-values (1, encode(digest('5913', 'sha256'), 'hex'), '{}'::jsonb)
+values (1, encode(digest('nehal84', 'sha256'), 'hex'), '{}'::jsonb)
 on conflict (id) do nothing;
 
 create or replace function public.tracker_get(pin text)

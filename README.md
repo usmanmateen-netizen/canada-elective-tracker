@@ -4,7 +4,7 @@ Application tracker for Canadian visiting electives, tailored to a Norwich Medic
 
 ## Live
 - Site: https://usmanmateen-netizen.github.io/canada-elective-tracker/
-- Backend: a dedicated Supabase project in the personal org (ref `iqpwyiiltchrrnxdfaxm`) — separate from the examloop project. PIN: 5913.
+- Backend: a dedicated Supabase project in the personal org (ref `iqpwyiiltchrrnxdfaxm`) — separate from the examloop project. Password: `nehal84` (stored as a sha256 hash in the DB).
 - The personal org is on the **Pro** plan, so this project does **not** auto-pause; sync is always available.
 
 Already set up and working. The steps below are only for reference / rebuilding elsewhere.
