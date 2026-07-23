@@ -407,8 +407,11 @@ function save(){state._v=Date.now();try{localStorage.setItem(KEY,JSON.stringify(
   if(CLOUD&&PIN){setSync("Saving…");clearTimeout(pushTimer);pushTimer=setTimeout(pushState,600);}}
 function setSync(t){const el=document.getElementById("sync");if(el)el.textContent=t;}
 async function rpc(fn,body){
-  const r=await fetch(CFG.url.replace(/\/$/,"")+"/rest/v1/rpc/"+fn,{method:"POST",headers:{apikey:CFG.anonKey,Authorization:"Bearer "+CFG.anonKey,"Content-Type":"application/json"},body:JSON.stringify(body)});
-  if(!r.ok)throw new Error("rpc "+fn+" "+r.status);
+  const ctrl=new AbortController();const to=setTimeout(()=>ctrl.abort(),12000);
+  let r;
+  try{r=await fetch(CFG.url.replace(/\/$/,"")+"/rest/v1/rpc/"+fn,{method:"POST",signal:ctrl.signal,headers:{apikey:CFG.anonKey,Authorization:"Bearer "+CFG.anonKey,"Content-Type":"application/json"},body:JSON.stringify(body)});}
+  finally{clearTimeout(to);}
+  if(!r.ok){const e=new Error("rpc "+fn+" "+r.status);e.status=r.status;throw e;}
   const t=await r.text();return t?JSON.parse(t):null;}
 async function pushState(){if(!(CLOUD&&PIN))return;try{await rpc("tracker_set",{pin:PIN,new_data:state});setSync("Saved to cloud · "+new Date().toTimeString().slice(0,5));}catch(e){setSync("Saved on this device (cloud unreachable — will sync next open)");}}
 // Best-effort save when the tab is closed/hidden, so the last change still reaches the cloud.
@@ -435,7 +438,12 @@ async function unlock(pin,remember,silent){
     const sb=document.getElementById("syncBtn");if(sb){sb.textContent="Synced ✓";sb.hidden=false;}
     refresh();return true;
   }catch(e){
-    if(!silent)document.getElementById("pinErr").textContent="Wrong PIN, or the database could not be reached.";
+    if(!silent){
+      const msg=(e&&e.status===400)
+        ? "That PIN wasn't recognised. Check it and try again."
+        : "Couldn't reach the sync server from this browser. Your progress is still saved on this device. Sync can be blocked by opening the file directly (use the https:// web link), a private/incognito window, an ad-blocker, or a school/work network.";
+      document.getElementById("pinErr").textContent=msg;
+    }
     return false;}}
 function openGate(){const g=document.getElementById("gate");document.getElementById("pinErr").textContent="";g.hidden=false;const i=document.getElementById("pinInput");i.value="";i.focus();}
 async function boot(){
@@ -449,7 +457,7 @@ async function boot(){
   const syncBtn=document.getElementById("syncBtn");
   syncBtn.hidden=false;
   syncBtn.addEventListener("click",openGate);
-  const saved=sessionStorage.getItem("tk_pin")||localStorage.getItem("tk_pin");
+  let saved=null;try{saved=sessionStorage.getItem("tk_pin")||localStorage.getItem("tk_pin");}catch(e){}
   if(saved&&await unlock(saved,!!localStorage.getItem("tk_pin"),true)){syncBtn.textContent="Synced ✓";return;}
   setSync("Saved on this device · tap Sync for your other devices");}
 function taskDone(slug,i){return !!(state.tasks[slug]&&state.tasks[slug][i]);}
