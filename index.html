@@ -399,27 +399,39 @@ const DOCS = [
 const KEY="canada-elective-tracker-v1";
 let state={tasks:{},docs:{},log:{},fund:{}};
 try{const raw=localStorage.getItem(KEY); if(raw) state=Object.assign(state,JSON.parse(raw));}catch(e){}
-function save(){try{localStorage.setItem(KEY,JSON.stringify(state));}catch(e){}
-  if(CLOUD&&PIN){clearTimeout(pushTimer);pushTimer=setTimeout(pushState,800);}}
 const CFG=(typeof window!=="undefined"&&window.TRACKER_CONFIG)||{};
 const CLOUD=!!(CFG.url&&CFG.anonKey);
 let PIN=null,pushTimer=null;
+function save(){state._v=Date.now();try{localStorage.setItem(KEY,JSON.stringify(state));}catch(e){}
+  if(CLOUD&&PIN){setSync("Saving…");clearTimeout(pushTimer);pushTimer=setTimeout(pushState,600);}}
 function setSync(t){const el=document.getElementById("sync");if(el)el.textContent=t;}
 async function rpc(fn,body){
   const r=await fetch(CFG.url.replace(/\/$/,"")+"/rest/v1/rpc/"+fn,{method:"POST",headers:{apikey:CFG.anonKey,Authorization:"Bearer "+CFG.anonKey,"Content-Type":"application/json"},body:JSON.stringify(body)});
   if(!r.ok)throw new Error("rpc "+fn+" "+r.status);
   const t=await r.text();return t?JSON.parse(t):null;}
-async function pushState(){try{await rpc("tracker_set",{pin:PIN,new_data:state});setSync("Saved to cloud · "+new Date().toTimeString().slice(0,5));}catch(e){setSync("Offline — saved on this device");}}
-function hasLocalData(){return Object.keys(state.tasks).length||Object.keys(state.docs).length||Object.keys(state.log).length||Object.keys(state.fund).length;}
+async function pushState(){if(!(CLOUD&&PIN))return;try{await rpc("tracker_set",{pin:PIN,new_data:state});setSync("Saved to cloud · "+new Date().toTimeString().slice(0,5));}catch(e){setSync("Saved on this device (cloud unreachable — will sync next open)");}}
+// Best-effort save when the tab is closed/hidden, so the last change still reaches the cloud.
+function flush(){if(!(CLOUD&&PIN))return;try{fetch(CFG.url.replace(/\/$/,"")+"/rest/v1/rpc/tracker_set",{method:"POST",keepalive:true,headers:{apikey:CFG.anonKey,Authorization:"Bearer "+CFG.anonKey,"Content-Type":"application/json"},body:JSON.stringify({pin:PIN,new_data:state})});}catch(e){}}
+window.addEventListener("pagehide",flush);
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="hidden")flush();});
 async function unlock(pin,remember,silent){
   try{
     const remote=await rpc("tracker_get",{pin});
     PIN=pin;
     try{(remember?localStorage:sessionStorage).setItem("tk_pin",pin);}catch(e){}
-    if(remote&&Object.keys(remote).length){state=Object.assign({tasks:{},docs:{},log:{},fund:{}},remote);try{localStorage.setItem(KEY,JSON.stringify(state));}catch(e){}}
-    else if(hasLocalData()){await rpc("tracker_set",{pin:PIN,new_data:state});}
+    const rv=(remote&&remote._v)||0, lv=state._v||0, remoteHas=remote&&Object.keys(remote).length;
+    if(remoteHas&&rv>=lv){
+      // cloud copy is newer (or equal) — use it
+      state=Object.assign({tasks:{},docs:{},log:{},fund:{}},remote);
+      try{localStorage.setItem(KEY,JSON.stringify(state));}catch(e){}
+      setSync("Synced · up to date");
+    }else{
+      // this device has newer (e.g. offline) changes, or the cloud is empty — push them up
+      await rpc("tracker_set",{pin:PIN,new_data:state});
+      setSync("Synced · this device's progress saved");
+    }
     document.getElementById("gate").hidden=true;
-    setSync("Saved to cloud · up to date");refresh();return true;
+    refresh();return true;
   }catch(e){
     if(!silent)document.getElementById("pinErr").textContent="Wrong PIN, or the database could not be reached.";
     return false;}}
