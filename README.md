@@ -2,8 +2,14 @@
 
 Application tracker for Canadian visiting electives, tailored to a Norwich Medical School (UEA) student. Static site (GitHub Pages) + Supabase for saved progress behind a PIN.
 
+## Live
+- Site: https://usmanmateen-netizen.github.io/canada-elective-tracker/
+- Backend: a dedicated Supabase project in the personal org (ref `iqpwyiiltchrrnxdfaxm`) — separate from the examloop project. PIN: 5913.
+
+Already set up and working. The steps below are only for reference / rebuilding elsewhere.
+
 ## Setup (one time)
-1. **Database**: Supabase dashboard → SQL Editor → paste `setup.sql` → replace `CHOOSE-A-PIN` with the real PIN → Run.
+1. **Database**: in a dedicated Supabase project, SQL Editor → paste `setup.sql` → Run (PIN is baked in; edit it first to change).
 2. **Connect the site**: put the project URL and anon key into `config.js` (dashboard → Project Settings → API), commit, push.
 3. Open the site, enter the PIN. Progress then syncs to Supabase from any device with the PIN.
 
