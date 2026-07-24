@@ -94,6 +94,26 @@
 
   .tiergrp{margin:26px 0 8px;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
   .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:12px}
+  .guide-sub{padding:0 20px 6px;color:var(--muted);font-size:13.5px;margin:0}
+  details.acc{border-top:1px solid var(--line);padding:0 20px}
+  details.acc:first-of-type{border-top:none}
+  details.acc>summary{list-style:none;cursor:pointer;padding:13px 0;font-weight:600;font-size:14.5px;display:flex;align-items:center;gap:10px}
+  details.acc>summary::-webkit-details-marker{display:none}
+  details.acc>summary::before{content:"+";color:var(--maple);font-weight:700;width:13px;text-align:center;flex:none}
+  details.acc[open]>summary::before{content:"−"}
+  details.acc .acc-body{padding:0 0 16px 23px;font-size:13.5px;line-height:1.6}
+  details.acc .acc-body p{margin:0 0 9px}
+  details.acc .acc-body ul{margin:0 0 9px;padding-left:18px}
+  details.acc .acc-body li{margin:4px 0}
+  .lists-head{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin:34px 0 2px}
+  .lists-head h2{font-size:20px;margin:0}
+  .toggle{display:inline-flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);cursor:pointer;user-select:none;border:1px solid var(--line);border-radius:20px;padding:6px 13px}
+  .toggle:hover{border-color:var(--muted)}
+  .toggle input{width:15px;height:15px}
+  .qcontact{display:grid;grid-template-columns:repeat(auto-fill,minmax(232px,1fr));gap:8px;padding:2px 0 2px}
+  .qcontact .qc{border:1px solid var(--line);border-radius:9px;padding:8px 11px;font-size:12px}
+  .qcontact .qc b{display:block;font-size:12.5px;margin-bottom:2px}
+  .qcontact .qc .mono{color:var(--muted)}
   .card{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:15px 17px;cursor:pointer;text-align:left;font:inherit;color:inherit;width:100%}
   .card:hover{border-color:var(--muted)}
   .card .c-top{display:flex;align-items:baseline;gap:9px}
@@ -175,6 +195,72 @@
   <h1 class="serif">Canada visiting elective — application tracker</h1>
   <p class="sub">All 17 Canadian medical schools, positioned on the map, researched for a Norwich Medical School (UEA) student. Each marker shows the school's status and how many application tasks are complete. Hover for a summary; click for details, the task checklist, contacts, and the drafted enquiry email. Progress is saved in this browser; Export creates a backup file that can be imported on another device.</p>
 
+  <section class="panel guide" id="guide">
+    <div class="panel-head"><h2>How the Canada elective process works — start here</h2></div>
+    <p class="guide-sub">New to all this? These answer the big questions in plain English. Tap any section to open it.</p>
+    <div style="padding:0 0 8px">
+      <details class="acc" open>
+        <summary>The 60-second big picture</summary>
+        <div class="acc-body">
+          <p>Most Canadian visiting-elective applications go through <b>one website — the AFMC Student Portal</b>. But the portal is only the <b>submission pipe</b>: each of the 17 medical schools sets its own rules, dates, fees and documents on top of it.</p>
+          <p>Two things to know up front: <b>only about 6 of the 17 schools actually accept UK students</b> (the rest are closed, French-only, or "international = Canadians studying abroad"), and <b>no school publishes acceptance rates</b> — the one thing you control is <b>applying the moment a school's window opens</b>. Timing is the whole game.</p>
+        </div>
+      </details>
+      <details class="acc">
+        <summary>Registration — how you get into the portal</summary>
+        <div class="acc-body">
+          <p>International students can't just sign up. The order is:</p>
+          <ul>
+            <li><b>Verification first.</b> You fill AFMC's "Homeschool Verification Form", then <b>UEA's electives office has to verify you</b> before your account is created. This is the hidden bottleneck — if UEA isn't already in the portal's system, adding it can take unknown time, so <b>email UEA's electives office now</b>.</li>
+            <li>Account created → activation email → set a password → log in.</li>
+            <li>Your "Year Level" shows <b>"International"</b> — never change it to "Eligible" or the account is deactivated with no refund.</li>
+            <li>Browsing is free. You only pay at your first application: a one-time <b>$745 CAD (~£425) international registration fee</b>, plus per-school application ($50–$500) and acceptance ($100–$844) fees.</li>
+          </ul>
+        </div>
+      </details>
+      <details class="acc">
+        <summary>"The lottery", explained — it's 3 different things</summary>
+        <div class="acc-body">
+          <p>You'll hear "lottery" and panic. It actually means three separate things, and only one might apply to you:</p>
+          <ul>
+            <li><b>The domestic lottery</b> (rounds, 2-week blocks, apply 12 weeks out) is labelled <b>"for domestic students only"</b> in the official guide. It does <b>not</b> apply to you — ignore it.</li>
+            <li><b>Toronto's Random Selection</b> — Toronto runs its own lottery just for international applicants (register ~May–June, then a random draw). Only relevant if you target Toronto.</li>
+            <li><b>The IFMSA draft</b> — on the student-exchange route you register with the UK body (Students for Global Health) and are placed into a Canadian slot.</li>
+            <li><b>"Residual capacity"</b> at Manitoba &amp; Queen's is <b>not</b> a lottery — you get placements left after domestic students, which is exactly why applying <b>the day the window opens</b> matters.</li>
+          </ul>
+        </div>
+      </details>
+      <details class="acc">
+        <summary>Can I skip the lottery? — yes</summary>
+        <div class="acc-body">
+          <p>Short answer: <b>choose the schools that aren't lotteries.</b></p>
+          <ul>
+            <li><b>Manitoba, Queen's and Dalhousie</b> are first-come-in-window, no lottery — the primary targets for a July–August 2027 elective.</li>
+            <li><b>SickKids Paediatric Cardiovascular Surgery</b> (Toronto) takes up to 6 international students a year by direct CV + letter, <b>bypassing the lottery</b> — a niche specialty, but a real door.</li>
+            <li><b>Research electives</b> (below) are arranged with a supervisor, not through any lottery.</li>
+          </ul>
+          <p>A lottery is only unavoidable if you specifically want Toronto's main programme or an IFMSA-route school (Calgary / Saskatchewan / McGill).</p>
+        </div>
+      </details>
+      <details class="acc">
+        <summary>Other routes besides a normal clinical elective</summary>
+        <div class="acc-body">
+          <p><b>Research electives</b> — work with a lab/supervisor instead of ward rotations; lighter admin, often not season-locked. UBC "Go Global VIRS" (~$415, not season-gated); Manitoba lets you email a supervisor directly. Only counts if UEA approves it.</p>
+          <p><b>Observerships</b> — you shadow, no hands-on care; usually <b>not</b> creditable as your elective, but a genuine foot-in-the-door and CV item. Several fit Peds/Psych: SickKids International Learner Program (~$275), MUHC "Option D" &amp; the Douglas Institute in Montreal (~$250), Royal Ottawa psychiatry.</p>
+          <p><b>IFMSA / SCOPE exchange</b> — register via Students for Global Health (UK); cheapest option (~€300–500 incl. lodging); places you at Calgary / Saskatchewan / McGill. Catch: needs a UK↔Canada contract that year (unconfirmed) and it's observership-status.</p>
+          <p><b>The UEA advantage</b> — UEA holds a <b>University of Toronto Placement Agreement (valid to July 2028)</b>; most UK schools have none. It's what makes Toronto's lottery possible for you, but only for a Jan–Aug 2028 window (2027's cycle has already closed).</p>
+        </div>
+      </details>
+      <details class="acc">
+        <summary>Who to contact</summary>
+        <div class="acc-body">
+          <p>The coordinator's <b>office</b> is the right first contact for each school — <b>email only</b>, and never message individual physicians or departments before approval (many schools treat that as grounds for rejection). Each school card below has the office details and a ready-to-edit draft in its <b>Contacts</b> and <b>Email draft</b> tabs. Primary offices for the schools you can actually use:</p>
+          <div class="qcontact" id="qcontact"></div>
+        </div>
+      </details>
+    </div>
+  </section>
+
   <div class="stats" id="stats"></div>
 
   <section class="panel" id="fundpanel">
@@ -204,6 +290,10 @@
     </div>
   </section>
 
+  <div class="lists-head">
+    <h2 class="serif">The schools</h2>
+    <label class="toggle"><input type="checkbox" id="hideClosed"> Hide the ones I can't apply to</label>
+  </div>
   <div id="lists"></div>
 </main>
 
@@ -650,7 +740,10 @@ function refresh(){
   document.getElementById("ribbon").innerHTML=`<b>Main deadline period: March 2027</b><span>For the expected July–August 2027 elective (UEA Year-4 module, dates unconfirmed), Manitoba and Queen's applications are due in late March 2027. If the elective moves to 2028, the key period becomes May 2027 (Toronto lottery, UBC, McMaster).</span><span class="count mono">${days} days remaining.</span>`;
   // lists
   const groups=[["Tier 1 — primary applications",s=>s.tier.startsWith("Tier 1")],["Tier 2 — backup options",s=>s.tier.startsWith("Tier 2")],["Closed — no current route",s=>s.tier.startsWith("Closed")]];
-  document.getElementById("lists").innerHTML=groups.map(([title,fn])=>{
+  const hideClosed=!!state.hideClosed;
+  const visibleGroups=hideClosed?groups.filter(g=>!g[0].startsWith("Closed")):groups;
+  const hiddenN=hideClosed?S.filter(s=>s.tier.startsWith("Closed")).length:0;
+  document.getElementById("lists").innerHTML=visibleGroups.map(([title,fn])=>{
     const rows=S.filter(fn).map(s=>{
       const {d,t}=progress(s);
       return `<button class="card" data-slug="${s.slug}">
@@ -661,7 +754,7 @@ function refresh(){
         ${(state.log[s.slug]||[]).length?`<span>✉ ${(state.log[s.slug]).length} contact${state.log[s.slug].length>1?"s":""} logged</span>`:""}</div>
       </button>`;}).join("");
     return `<div class="tiergrp">${title}</div><div class="cards">${rows}</div>`;
-  }).join("");
+  }).join("")+(hiddenN?`<div class="tiergrp" style="opacity:.6;font-weight:400;text-transform:none;letter-spacing:0">${hiddenN} school${hiddenN>1?"s":""} you can't apply to (French-only or not accepting international students) are hidden — untick the switch above to show them.</div>`:"");
   document.querySelectorAll(".card").forEach(c=>c.addEventListener("click",()=>openDrawer(c.dataset.slug)));
   // funding panel
   let fd=0; FUND.forEach((_,i)=>{if(state.fund[i])fd++;});
@@ -769,6 +862,10 @@ document.getElementById("importFile").addEventListener("change",e=>{
   f.text().then(t=>{try{state=Object.assign({tasks:{},docs:{},log:{},fund:{}},JSON.parse(t));save();refresh();}catch(err){alert("That file couldn't be read as a progress backup.");}});
 });
 
+// Filter toggle — hide the schools she can't apply to (persisted + synced across devices).
+(function(){const box=document.getElementById("hideClosed");if(box){box.checked=!!state.hideClosed;box.addEventListener("change",()=>{state.hideClosed=box.checked;save();refresh();});}})();
+// Quick-contact reference in the guide panel — primary office per eligible school, kept in sync with the data.
+(function(){const el=document.getElementById("qcontact");if(!el)return;el.innerHTML=S.filter(s=>s.status!=="closed").map(s=>{const c=s.contacts&&s.contacts[0];if(!c)return "";const phone=c.p?" · "+c.p.replace(/\s*\(.*?\)/g,"").trim():"";return `<div class="qc"><b>${s.name}</b><span class="mono">${c.e}${phone}</span></div>`;}).join("");})();
 refresh();
 boot();
 // Greeting — picks a random greeting in a different language on every visit/load.
