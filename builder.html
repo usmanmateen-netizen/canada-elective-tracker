@@ -44,6 +44,12 @@
   button:disabled{opacity:.5;cursor:default}
   .status{font-size:13px;color:var(--muted)}
   .status.ok{color:var(--ok)}
+  .filerow{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .fbtn{border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:8px;padding:8px 14px;font:inherit;font-size:13px;font-weight:600;cursor:pointer}
+  .fbtn:hover{border-color:var(--muted)}
+  .fname{font-size:13px;color:var(--muted)}
+  a.fview{font-size:13px;color:var(--maple);text-decoration:none;border:1px solid color-mix(in srgb,var(--maple) 30%,transparent);border-radius:7px;padding:5px 10px}
+  .fx{border:none;background:none;color:var(--muted);font-size:13px;cursor:pointer;text-decoration:underline;padding:4px}
   .banner{background:var(--maple-soft);border:1px solid color-mix(in srgb,var(--maple) 25%,transparent);border-radius:11px;padding:12px 16px;margin-bottom:22px;font-size:13.5px}
   .banner b{color:var(--maple)}
   /* gate */
@@ -123,7 +129,8 @@ const FIELDS = [
   {k:"goals",      l:"Why Canada / career direction",            ph:"What you want from this elective and where you're heading…", area:true},
 
   {sec:"CV & anything else"},
-  {k:"cv",         l:"Paste your CV, or add anything else we should know", ph:"Paste your full CV text here, or note anything else relevant…", area:true, big:true},
+  {k:"cvFile",     l:"Upload your CV (PDF)", file:true},
+  {k:"cv",         l:"…or paste your CV / add anything else we should know", ph:"Paste your full CV text here, or note anything else relevant…", area:true, big:true},
 ];
 
 // ---- render the form: each section header is followed by a 2-col grid of its fields ----
@@ -134,11 +141,23 @@ const form=document.getElementById("pform");
     if(f.sec){ const h=document.createElement("div"); h.className="sec"; h.textContent=f.sec; frag.appendChild(h);
       grid=document.createElement("div"); grid.className="grid2"; frag.appendChild(grid); return; }
     const wrap=document.createElement("div"); wrap.className="field";
-    wrap.style.gridColumn = (f.area? "1 / -1" : (f.half? "auto":"1 / -1"));
-    const ctrl = f.area
-      ? `<textarea id="f_${f.k}" class="${f.big?'big':''}" placeholder="${f.ph||''}"></textarea>`
-      : `<input id="f_${f.k}" type="text" placeholder="${f.ph||''}">`;
-    wrap.innerHTML = `<label for="f_${f.k}">${f.l}</label>${ctrl}`;
+    wrap.style.gridColumn = (f.half && !f.area && !f.file ? "auto" : "1 / -1");
+    if(f.file){
+      wrap.innerHTML = `<label for="f_${f.k}">${f.l}</label>
+        <div class="filerow">
+          <input type="file" id="f_${f.k}" accept="application/pdf" hidden>
+          <button type="button" class="fbtn" id="fbtn_${f.k}">Choose PDF…</button>
+          <span class="fname" id="fname_${f.k}">No file chosen</span>
+          <a class="fview" id="fview_${f.k}" target="_blank" rel="noopener" hidden>View</a>
+          <button type="button" class="fx" id="fx_${f.k}" hidden>Remove</button>
+        </div>
+        <div class="hint" style="margin-top:6px">Optional — PDF up to ~3 MB. Attach a file, paste the text below, or both.</div>`;
+    } else {
+      const ctrl = f.area
+        ? `<textarea id="f_${f.k}" class="${f.big?'big':''}" placeholder="${f.ph||''}"></textarea>`
+        : `<input id="f_${f.k}" type="text" placeholder="${f.ph||''}">`;
+      wrap.innerHTML = `<label for="f_${f.k}">${f.l}</label>${ctrl}`;
+    }
     (grid||frag).appendChild(wrap);
   });
   form.appendChild(frag);
@@ -164,12 +183,13 @@ function renderSubmitState(){
   } else { el.innerHTML=`Not submitted yet. Save a draft as you go; submit when it's ready.`; el.style.display="block"; }
 }
 function populate(){
-  FIELDS.forEach(f=>{ if(!f.k)return; const el=document.getElementById("f_"+f.k); if(el) el.value = profile[f.k]||""; });
+  FIELDS.forEach(f=>{ if(!f.k||f.file)return; const el=document.getElementById("f_"+f.k); if(el) el.value = profile[f.k]||""; });
+  if(window.__showCvFile) window.__showCvFile();
   renderSubmitState();
 }
 function collect(){
   const out=Object.assign({}, profile);
-  FIELDS.forEach(f=>{ if(!f.k)return; const el=document.getElementById("f_"+f.k); if(el) out[f.k]=el.value; });
+  FIELDS.forEach(f=>{ if(!f.k||f.file)return; const el=document.getElementById("f_"+f.k); if(el) out[f.k]=el.value; });
   return out;
 }
 async function saveDraft(silent){
@@ -193,6 +213,32 @@ document.getElementById("saveBtn").addEventListener("click",()=>saveDraft(false)
 document.getElementById("submitBtn").addEventListener("click",submitForAnalysis);
 form.addEventListener("input",()=>{ dirty=true; setStatus("Unsaved changes"); });
 window.addEventListener("beforeunload",e=>{ if(dirty){ e.preventDefault(); e.returnValue=""; } });
+
+// CV PDF upload → stored as base64 inside the profile JSON (same store as the rest of the profile).
+(function(){
+  const key="cvFile";
+  const input=document.getElementById("f_"+key), btn=document.getElementById("fbtn_"+key),
+        nameEl=document.getElementById("fname_"+key), viewEl=document.getElementById("fview_"+key), rmEl=document.getElementById("fx_"+key);
+  if(!input) return;
+  function show(){
+    const f=profile[key];
+    if(f&&f.dataUrl){ nameEl.textContent=f.name+" · "+Math.round((f.size||0)/1024)+" KB"; viewEl.href=f.dataUrl; viewEl.hidden=false; rmEl.hidden=false; }
+    else { nameEl.textContent="No file chosen"; viewEl.hidden=true; rmEl.hidden=true; }
+  }
+  window.__showCvFile=show;
+  btn.addEventListener("click",()=>input.click());
+  input.addEventListener("change",()=>{
+    const file=input.files&&input.files[0]; input.value="";
+    if(!file) return;
+    if(file.type!=="application/pdf" && !/\.pdf$/i.test(file.name)){ setStatus("Please choose a PDF file."); return; }
+    if(file.size>3*1024*1024){ setStatus("That PDF is over 3 MB — use a smaller file or paste the text instead."); return; }
+    const rd=new FileReader();
+    rd.onload=()=>{ profile[key]={name:file.name,type:file.type||"application/pdf",size:file.size,dataUrl:rd.result}; dirty=true; show(); setStatus("PDF attached — remember to Save draft or Submit."); };
+    rd.onerror=()=>setStatus("Couldn't read that file.");
+    rd.readAsDataURL(file);
+  });
+  rmEl.addEventListener("click",()=>{ delete profile[key]; dirty=true; show(); setStatus("PDF removed — remember to Save."); });
+})();
 
 // ---- gate (same password as the tracker; a remembered device auto-unlocks) ----
 async function unlock(pin,remember,silent){
