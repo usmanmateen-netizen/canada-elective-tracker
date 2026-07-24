@@ -48,6 +48,8 @@
   .top-actions{margin-left:auto;display:flex;gap:8px}
   button.ghost{background:none;border:1px solid var(--line);color:var(--ink);border-radius:8px;padding:7px 12px;font:inherit;font-size:13px;cursor:pointer}
   button.ghost:hover{border-color:var(--muted)}
+  a.navlink{background:var(--maple-soft);border:1px solid color-mix(in srgb,var(--maple) 30%,transparent);color:var(--maple);border-radius:8px;padding:7px 12px;font:inherit;font-size:13px;font-weight:600;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center}
+  a.navlink:hover{filter:brightness(1.03);border-color:var(--maple)}
   button:focus-visible,a:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--maple);outline-offset:2px}
 
   main{max-width:1180px;margin:0 auto;padding:28px 24px 80px}
@@ -181,6 +183,7 @@
     <svg class="leaf" viewBox="0 0 24 24" aria-hidden="true"><path fill="var(--maple)" d="M12 1.5l1.8 3.6 2.4-1.2-.7 3.9 3.4-.6-1.7 3 3.3 1.3-2.7 2 2 2.6-3.7.3.5 3.6-3.4-1.6-.4 3.9L12 20l-.8 2.3-.4-3.9-3.4 1.6.5-3.6-3.7-.3 2-2.6-2.7-2 3.3-1.3-1.7-3 3.4.6-.7-3.9 2.4 1.2z"/></svg>
     <div class="wordmark">Canada Elective Tracker<small>Nehel · UK to Canada · visiting elective applications</small></div>
     <div class="top-actions"><span id="sync"></span>
+      <a class="navlink" href="./builder.html" title="Open your application profile">My profile</a>
       <button class="ghost" id="syncBtn" title="Enter the PIN to sync this device with your saved progress" hidden>Sync</button>
       <button class="ghost" id="exportBtn" title="Download your progress as a backup file">Export</button>
       <button class="ghost" id="importBtn" title="Restore progress from a backup file">Import</button>
