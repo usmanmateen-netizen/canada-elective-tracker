@@ -1,0 +1,306 @@
+<title>Elective Funding — Canada Elective Tracker</title>
+<style>
+  :root{
+    --paper:#FBFAF7; --panel:#FFFFFF; --ink:#1C2430; --muted:#5C6672;
+    --line:#E7E4DC; --line-soft:#F0EEE7; --maple:#B01E2E; --maple-soft:#F7E9EA; --ok:#1E7A46;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --paper:#12161C; --panel:#1A2028; --ink:#E8E6E1; --muted:#9AA3AD;
+      --line:#2A313B; --line-soft:#232932; --maple:#E0455A; --maple-soft:#3A2026; --ok:#4FB37B; }
+  }
+  :root[data-theme="light"]{ --paper:#FBFAF7; --panel:#FFFFFF; --ink:#1C2430; --muted:#5C6672; --line:#E7E4DC; --line-soft:#F0EEE7; --maple:#B01E2E; --maple-soft:#F7E9EA; --ok:#1E7A46; }
+  :root[data-theme="dark"]{ --paper:#12161C; --panel:#1A2028; --ink:#E8E6E1; --muted:#9AA3AD; --line:#2A313B; --line-soft:#232932; --maple:#E0455A; --maple-soft:#3A2026; --ok:#4FB37B; }
+  *{box-sizing:border-box}
+  body{background:var(--paper);color:var(--ink);font:15px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased;margin:0}
+  .serif{font-family:"Iowan Old Style","Palatino Linotype",Georgia,'Times New Roman',serif}
+  a{color:var(--maple)}
+  header.top{position:sticky;top:0;z-index:40;background:color-mix(in srgb,var(--paper) 88%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+  .top-in{max-width:1000px;margin:0 auto;padding:14px 24px;display:flex;align-items:center;gap:14px}
+  .wordmark{font-weight:600}
+  .wordmark small{display:block;font-size:11px;color:var(--muted);font-weight:500;letter-spacing:.08em;text-transform:uppercase}
+  a.back{margin-left:auto;font-size:13px;color:var(--muted);text-decoration:none;border:1px solid var(--line);border-radius:8px;padding:7px 12px}
+  a.back:hover{border-color:var(--muted)}
+  .leaf{width:26px;height:26px}
+  main{max-width:1000px;margin:0 auto;padding:26px 24px 90px}
+  h1{font-size:clamp(24px,4vw,33px);line-height:1.15;margin:0 0 6px;font-weight:600}
+  .sub{color:var(--muted);max-width:70ch;margin:0 0 20px}
+  .frame{background:var(--maple-soft);border:1px solid color-mix(in srgb,var(--maple) 25%,transparent);border-radius:12px;padding:14px 18px;margin-bottom:22px;font-size:13.5px;line-height:1.55}
+  .frame b{color:var(--maple)}
+  .summary{display:flex;flex-wrap:wrap;gap:22px;align-items:baseline;padding:14px 0 18px;border-bottom:1px solid var(--line);margin-bottom:18px}
+  .summary .big{font-size:26px;font-weight:600}
+  .summary .l{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px}
+  .chip{font:inherit;font-size:13px;border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:20px;padding:7px 14px;cursor:pointer}
+  .chip:hover{border-color:var(--muted)}
+  .chip.on{background:var(--maple);border-color:var(--maple);color:#fff}
+  .grouphdr{font-size:12px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin:24px 0 12px}
+  .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:14px}
+  .fcard{border:1px solid var(--line);border-radius:13px;background:var(--panel);padding:16px 18px;display:flex;flex-direction:column;gap:9px}
+  .fcard.applied{border-color:color-mix(in srgb,var(--ok) 45%,var(--line))}
+  .fc-top{display:flex;align-items:flex-start;gap:10px}
+  .fc-top h3{margin:0;font-size:15.5px;flex:1;line-height:1.3}
+  .amt{font-weight:700;color:var(--maple);white-space:nowrap;font-size:14px}
+  .fc-meta{display:flex;flex-wrap:wrap;gap:6px}
+  .tag{font-size:11px;font-weight:600;border-radius:5px;padding:2px 7px;background:var(--line-soft);color:var(--muted)}
+  .tag.fit{background:var(--maple-soft);color:var(--maple)}
+  .tag.due{background:color-mix(in srgb,var(--ok) 15%,transparent);color:var(--ok)}
+  .fc-body{font-size:13px;color:var(--ink);line-height:1.55}
+  .fc-body p{margin:0 0 6px}
+  .fc-body .lbl{color:var(--muted);font-weight:600}
+  .fc-foot{display:flex;align-items:center;gap:12px;margin-top:auto;padding-top:6px;flex-wrap:wrap}
+  .applybox{display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:600;cursor:pointer;user-select:none}
+  .applybox input{width:16px;height:16px}
+  a.reslink{font-size:13px;color:var(--maple);text-decoration:none;font-weight:600;border:1px solid color-mix(in srgb,var(--maple) 30%,transparent);border-radius:7px;padding:5px 11px}
+  a.reslink:hover{background:var(--maple-soft)}
+  .nolink{font-size:12.5px;color:var(--muted)}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin-top:26px}
+  .panel h2{margin:0 0 10px;font-size:18px}
+  .panel ol,.panel ul{margin:0;padding-left:20px}
+  .panel li{margin:6px 0;font-size:13.5px;line-height:1.55}
+  .reslist{display:flex;flex-direction:column;gap:8px;margin-top:4px}
+  .reslist a{font-size:13.5px}
+  /* gate */
+  #gate{position:fixed;inset:0;z-index:100;background:var(--paper);display:flex;align-items:center;justify-content:center;padding:24px}
+  #gate[hidden]{display:none}
+  .gate-box{background:var(--panel);border:1px solid var(--line);border-radius:16px;box-shadow:0 20px 50px rgba(0,0,0,.18);padding:34px 36px;max-width:380px;width:100%}
+  .gate-box h2{margin:12px 0 6px;font-size:21px}
+  .gate-box p{color:var(--muted);font-size:13.5px;margin:0 0 18px}
+  .gate-box input[type=password]{width:100%;font:inherit;font-size:20px;letter-spacing:.35em;text-align:center;padding:11px;border:1px solid var(--line);border-radius:10px;background:var(--paper);color:var(--ink)}
+  .gate-row{display:flex;align-items:center;gap:8px;margin:14px 0;font-size:13px;color:var(--muted)}
+  .gate-err{color:var(--maple);font-size:13px;min-height:18px;margin-top:8px}
+  button.solid{font:inherit;cursor:pointer;border-radius:9px;padding:11px 16px;font-size:15px;font-weight:600;border:1px solid var(--maple);background:var(--maple);color:#fff}
+</style>
+
+<header class="top">
+  <div class="top-in">
+    <svg class="leaf" viewBox="0 0 24 24" aria-hidden="true"><path fill="var(--maple)" d="M12 1.5l1.8 3.6 2.4-1.2-.7 3.9 3.4-.6-1.7 3 3.3 1.3-2.7 2 2 2.6-3.7.3.5 3.6-3.4-1.6-.4 3.9L12 20l-.8 2.3-.4-3.9-3.4 1.6.5-3.6-3.7-.3 2-2.6-2.7-2 3.3-1.3-1.7-3 3.4.6-.7-3.9 2.4 1.2z"/></svg>
+    <div class="wordmark">Elective Funding<small>Canada Elective Tracker</small></div>
+    <a class="back" href="./index.html">← Back to tracker</a>
+  </div>
+</header>
+
+<main>
+  <h1 class="serif">Funding your elective</h1>
+  <p class="sub">UK bursaries and prizes you can stack to offset the cost, plus Canada-side cost-savers. Tick "Applied" as you go — it syncs with your tracker. Each card has who it's for, the deadline, and a link to apply.</p>
+
+  <div class="frame">
+    <b>Honest framing:</b> no funder pays for "Canada" specifically — it's a high-income destination, so several classic elective funds (which target low-resource settings) don't apply. The realistic play is stacking <b>2–4 small awards (£250–£1,000 each)</b> plus free indemnity, for roughly <b>£1,000–£2,000</b> off the budget. Most deadlines run annual spring cycles and several are unconfirmed — treat autumn 2026 as the window to re-check and apply.
+  </div>
+
+  <div class="summary">
+    <div><div class="big serif" id="sApplied">0</div><div class="l">Marked applied</div></div>
+    <div><div class="big serif">£1–2k</div><div class="l">Realistic target offset</div></div>
+    <div><div class="big serif" id="sPriority">0</div><div class="l">Priority items left</div></div>
+  </div>
+
+  <div class="chips" id="chips"></div>
+  <div id="fundwrap"></div>
+
+  <div class="panel">
+    <h2>Stacking strategy</h2>
+    <ol>
+      <li><b>Watch + apply: RCP elective bursary</b> the moment it reopens (~late autumn 2026). Join the RCP as a student member first. £500, strong fit.</li>
+      <li><b>Ask UEA's own elective fund</b> — nearly every UK school has internal bursaries (£200–£1,000). Email UEA's electives / scholarships office. High priority, easy ask.</li>
+      <li><b>Build a small project or audit into the elective</b> — that unlocks the project-based awards (BMDST/RSM £500–£1,000, IME £800 if there's an ethics angle, Simmonds £250).</li>
+      <li><b>Play your specialties:</b> a neuropsychiatry angle → RCPsych Neuropsychiatry (£200) + BGS (£500, old-age); a paediatric haematology-oncology angle → BSH (up to £1,000).</li>
+      <li><b>Free indemnity:</b> join MPS or MDU as a student (free) for elective cover — and ask whether it extends to Canada.</li>
+    </ol>
+  </div>
+
+  <div class="panel">
+    <h2>Resources</h2>
+    <div class="reslist">
+      <a href="https://www.medschools.ac.uk/for-students/current-medical-students/elective-bursaries/" target="_blank" rel="noopener">Medical Schools Council — elective bursaries list ↗</a>
+      <a href="https://www.abdn.ac.uk/medical/electives/funding" target="_blank" rel="noopener">Aberdeen's elective-funding database (free lookup for any UK student) ↗</a>
+      <a href="https://www.worktheworld.co.uk/grants-and-bursaries" target="_blank" rel="noopener">Work the World — grants & bursaries roundup ↗</a>
+      <a href="https://rmbf.org/get-help/advice-hub/bursaries-and-grants-for-your-elective/" target="_blank" rel="noopener">RMBF — bursaries & grants advice ↗</a>
+    </div>
+    <p style="font-size:12.5px;color:var(--muted);margin:12px 0 0">Amounts and deadlines are indicative from research on 23 Jul 2026; confirm each on the funder's own page before relying on it.</p>
+  </div>
+</main>
+
+<div id="gate">
+  <div class="gate-box">
+    <svg class="leaf" viewBox="0 0 24 24" aria-hidden="true"><path fill="var(--maple)" d="M12 1.5l1.8 3.6 2.4-1.2-.7 3.9 3.4-.6-1.7 3 3.3 1.3-2.7 2 2 2.6-3.7.3.5 3.6-3.4-1.6-.4 3.9L12 20l-.8 2.3-.4-3.9-3.4 1.6.5-3.6-3.7-.3 2-2.6-2.7-2 3.3-1.3-1.7-3 3.4.6-.7-3.9 2.4 1.2z"/></svg>
+    <h2 class="serif">Elective funding</h2>
+    <p>This is private. Enter your password to open it.</p>
+    <input type="password" id="pinInput" autocomplete="current-password" aria-label="Password" placeholder="Password">
+    <div class="gate-row"><input type="checkbox" id="pinRemember" checked style="width:15px;height:15px"><label for="pinRemember">Keep me signed in on this device</label></div>
+    <button class="solid" id="pinGo" style="width:100%">Unlock</button>
+    <div class="gate-err" id="pinErr"></div>
+  </div>
+</div>
+
+<script src="./config.js?v=20260723b"></script>
+<script>
+// idx 0–5 mirror the tracker's funding checkboxes (state.fund[idx]) so ticks sync both ways.
+const FUNDS = [
+  {idx:0, name:"Norwich Med Chi — Pre-Elective Prize", amt:"£500", fit:"Best fit", tags:["priority","uea"], group:"priority",
+   due:"Proposal due ~Sept 2026 (Year 4)", who:"UEA students; needs a clinical-tutor nomination",
+   what:"UEA's own pre-elective prize — the nearest deadline in the whole plan.",
+   how:"Ask a clinical tutor to nominate you now and prepare a short proposal.", link:"", linkNote:"Via Norwich Medical School electives office / Med Chi Society"},
+  {idx:1, name:"Norwich Med Chi — Post-Elective Prize", amt:"£1,000", fit:"Best fit", tags:["priority","uea"], group:"priority",
+   due:"Report submitted after the elective", who:"UEA students",
+   what:"UEA's post-elective prize, awarded for a written report on return.",
+   how:"Plan the report while you're on placement so it's ready to submit.", link:"", linkNote:"Via Norwich Medical School electives office / Med Chi Society"},
+  {idx:2, name:"RCP Medical Student Elective Bursaries", amt:"up to 12 × £500", fit:"Best fit", tags:["priority","national"], group:"priority",
+   due:"Reopens ~late autumn 2026 — watch it", who:"RCP student members; academic excellence + financial need; apply before the elective starts",
+   what:"No destination restriction stated, so Canada qualifies. One of the strongest fits.",
+   how:"Join the RCP as a student member first, then apply as soon as the round opens. Contact fundingandawards@rcp.ac.uk.", link:"https://www.rcp.ac.uk/membership/funding-and-awards/rcp-medical-student-elective-bursaries/"},
+  {idx:3, name:"RCPSG (Glasgow) student elective awards", amt:"up to 8 × £1,000", fit:"Best fit", tags:["priority","national"], group:"priority",
+   due:"Annual — around 24 November", who:"Requires affiliate membership before applying",
+   what:"One of the larger UK student elective awards.",
+   how:"Take out RCPSG affiliate membership, then apply by the November deadline.", link:"https://rcpsg.ac.uk/college/membership/awards"},
+  {idx:6, name:"UEA's own elective fund", amt:"£200–£1,000 (typical)", fit:"Best fit", tags:["priority","uea"], group:"priority",
+   due:"Usually spring of the elective year — confirm", who:"UEA medical students",
+   what:"Almost every UK school has internal elective bursaries. UEA's specifics are unconfirmed — a high-value, low-effort ask.",
+   how:"Email UEA's electives / scholarships office to ask what internal elective funding exists and its deadline.", link:"", linkNote:"Ask UEA electives / scholarships office"},
+  {idx:14, name:"MPS or MDU student membership — free indemnity", amt:"Free (cost-saver)", fit:"Do now", tags:["priority","national"], group:"priority",
+   due:"Anytime — do it early", who:"UK medical students",
+   what:"Free student membership usually includes free elective indemnity — a cost you avoid rather than cash you receive.",
+   how:"Join as a student member. Ask: does the elective cover extend to Canada? (Some Canadian schools force you to buy their own malpractice.)", link:"https://www.medicalprotection.org/uk/join-us/students"},
+
+  {idx:4, name:"Lady Allen of Hurtwood Memorial Trust", amt:"~£1,000", fit:"Paediatrics", tags:["paeds"], group:"specialty",
+   due:"Check current round", who:"Projects involving young children and their families",
+   what:"No destination restriction stated — a strong fit for a hands-on paediatrics elective.",
+   how:"Apply via the trust with a paediatrics-focused elective description.", link:"https://www.ladyallentrust.org.uk/"},
+  {idx:5, name:"RCPsych Neuropsychiatry Faculty bursaries", amt:"up to £200", fit:"Psych / Neuro", tags:["psych","neuro"], group:"specialty",
+   due:"Annual — check the faculty page", who:"UK medical students & residents; activity linked to neuropsychiatry",
+   what:"Bridges your psychiatry and neurology interests — frame the elective with a neuropsychiatry angle.",
+   how:"Apply to the Neuropsychiatry Faculty; describe the neuropsychiatry link.", link:"https://www.rcpsych.ac.uk/members/your-faculties/neuropsychiatry/prizes-and-bursaries"},
+  {idx:9, name:"British Society for Haematology — Student Elective Scholarships", amt:"up to 20 × £1,000", fit:"Paediatrics", tags:["paeds"], group:"specialty",
+   due:"Check current round", who:"Elective in the field of haematology",
+   what:"Unlocks up to £1,000 if part of the elective is haematology — e.g. paediatric haem-oncology at a children's hospital.",
+   how:"Angle part of the placement toward haematology and apply.", link:"https://b-s-h.org.uk/grants/student-elective-scholarships"},
+  {idx:10, name:"British Geriatrics Society elective grant", amt:"up to £500", fit:"Psych / Neuro", tags:["psych","neuro"], group:"specialty",
+   due:"Check current round", who:"Project on health/healthcare in old age",
+   what:"Fits an old-age-psychiatry or neurology (dementia / stroke) component.",
+   how:"Include an old-age-health project and apply.", link:"https://www.bgs.org.uk/bgs-grant-medical-students-elective"},
+
+  {idx:7, name:"BMDST / RSM Student Elective Awards", amt:"£500–£1,000", fit:"Needs a project", tags:["project"], group:"project",
+   due:"Check the RSM travel-grants page", who:"UK students with a specific project on the elective",
+   what:"Design a small audit or project into the elective to qualify.",
+   how:"Define a project, then apply via the RSM travel grants page.", link:"https://www.rsm.ac.uk/prizes-and-awards/travel-grants-and-bursaries/"},
+  {idx:8, name:"Institute of Medical Ethics elective bursary", amt:"up to £800", fit:"Needs an ethics angle", tags:["project"], group:"project",
+   due:"Check current round", who:"Elective addressing a medical-ethics issue",
+   what:"A credible fit via a Canada-specific ethics angle (e.g. MAiD, or consent in child psychiatry).",
+   how:"Frame an ethics question into the elective and apply.", link:"https://ime-uk.org/grants-and-competitions/elective-bursaries/"},
+  {idx:11, name:"Simmonds Bursary", amt:"£250", fit:"Needs a project", tags:["project"], group:"project",
+   due:"Check current round", who:"Elective with a research component",
+   what:"Small, stackable with any project-based application.",
+   how:"Add a research component and apply.", link:""},
+
+  {idx:12, name:"Patient.info medical student bursary", amt:"up to £250", fit:"If eligible", tags:["other"], group:"other",
+   due:"Check current round", who:"Supports medical training incl. elective expenses",
+   what:"Small and low-effort.",
+   how:"Apply via the Patient.info bursary page.", link:"https://patient.info/doctor/thinking-about-medicine/medical-student-bursary"},
+  {idx:13, name:"Medical Women's Federation grants", amt:"£100–£500+", fit:"If eligible", tags:["other"], group:"other",
+   due:"Check current round", who:"Female medical students who are MWF members",
+   what:"Applicable if you join the MWF as a student member.",
+   how:"Join MWF, then apply for the student grant.", link:"https://www.medicalwomensfederation.org.uk/"},
+];
+
+// Canada-side cost-savers (situational; not cash you apply for — shown for planning, no checkbox)
+const CANADA = [
+  {name:"UBC ‘Go Global’ VIRS research route", note:"Fee only ~CAD $415 (~£240) for a research elective — the cheapest institutional door in Canada, if a research placement is acceptable to UEA.", link:"https://goglobal.ubc.ca/go-global/coming-ubc/visiting-international-research-students"},
+  {name:"IFMSA / SCOPE hosting package", note:"The exchange route includes lodging + typically one meal a day — the built-in subsidy (the ~€300–500 fee covers it).", link:"https://studentsforglobalhealth.org/ifmsa-exchanges/"},
+  {name:"NOSM subsidised learner housing", note:"~CAD $375/week (~£220) in some Northern Ontario communities — only if NOSM's international stream reopens (currently paused).", link:"https://www.nosm.ca/"},
+  {name:"Dalhousie summer residence", note:"Market-cheap student residence in Halifax over the summer — a cost-softener, not a grant.", link:"https://www.dal.ca/campus_life/residence.html"},
+];
+
+const CHIPS = [["all","All"],["priority","Priority"],["paeds","Paediatrics"],["psych","Psych & neuro"],["project","Project-based"],["other","If eligible"]];
+let activeFilter="all";
+
+// ---- backend (tracker store; state.fund[idx] shared with the main tracker) ----
+const CFG=(typeof window!=="undefined"&&window.TRACKER_CONFIG)||{};
+const CLOUD=!!(CFG.url&&CFG.anonKey);
+let PIN=null, state={};
+async function rpc(fn,body){
+  const ctrl=new AbortController(); const to=setTimeout(()=>ctrl.abort(),12000);
+  let r; try{ r=await fetch(CFG.url.replace(/\/$/,"")+"/rest/v1/rpc/"+fn,{method:"POST",signal:ctrl.signal,headers:{apikey:CFG.anonKey,Authorization:"Bearer "+CFG.anonKey,"Content-Type":"application/json"},body:JSON.stringify(body)}); }
+  finally{ clearTimeout(to); }
+  if(!r.ok){ const e=new Error("rpc "+fn+" "+r.status); e.status=r.status; throw e; }
+  const t=await r.text(); return t?JSON.parse(t):null;
+}
+const esc=s=>String(s).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+function applied(f){ return !!(state.fund&&state.fund[f.idx]); }
+async function toggle(f,on){
+  state.fund=state.fund||{}; state.fund[f.idx]=on;
+  render();
+  if(CLOUD&&PIN){ try{ await rpc("tracker_set",{pin:PIN,new_data:state}); }catch(e){} }
+}
+function card(f){
+  const on=applied(f);
+  const linkHtml = f.link
+    ? `<a class="reslink" href="${f.link}" target="_blank" rel="noopener">Apply / info ↗</a>`
+    : (f.linkNote?`<span class="nolink">${esc(f.linkNote)}</span>`:"");
+  return `<div class="fcard${on?" applied":""}" data-idx="${f.idx}">
+    <div class="fc-top"><h3>${esc(f.name)}</h3><span class="amt">${esc(f.amt)}</span></div>
+    <div class="fc-meta"><span class="tag fit">${esc(f.fit)}</span><span class="tag due">${esc(f.due)}</span></div>
+    <div class="fc-body">
+      <p>${esc(f.what)}</p>
+      <p><span class="lbl">Who:</span> ${esc(f.who)}</p>
+      <p><span class="lbl">How:</span> ${esc(f.how)}</p>
+    </div>
+    <div class="fc-foot">
+      <label class="applybox"><input type="checkbox" data-idx="${f.idx}" ${on?"checked":""}> Applied</label>
+      ${linkHtml}
+    </div>
+  </div>`;
+}
+function render(){
+  // summary
+  const appliedN=FUNDS.filter(applied).length;
+  const priLeft=FUNDS.filter(f=>f.group==="priority"&&!applied(f)).length;
+  document.getElementById("sApplied").textContent=appliedN;
+  document.getElementById("sPriority").textContent=priLeft;
+  // chips
+  document.getElementById("chips").innerHTML=CHIPS.map(([k,l])=>`<button class="chip${k===activeFilter?" on":""}" data-f="${k}">${l}</button>`).join("");
+  document.querySelectorAll(".chip").forEach(c=>c.addEventListener("click",()=>{activeFilter=c.dataset.f;render();}));
+  // grouped cards
+  const match=f=>activeFilter==="all"||f.tags.includes(activeFilter);
+  const groups=[["priority","Priority — apply to these"],["specialty","Matched to your specialties"],["project","Unlock these with a project or audit"],["other","If eligible"]];
+  let html="";
+  groups.forEach(([g,title])=>{
+    const items=FUNDS.filter(f=>f.group===g&&match(f));
+    if(!items.length)return;
+    html+=`<div class="grouphdr">${title}</div><div class="cards">${items.map(card).join("")}</div>`;
+  });
+  if(activeFilter==="all"){
+    html+=`<div class="grouphdr">Canada-side cost-savers (not cash — situational)</div><div class="cards">`+
+      CANADA.map(c=>`<div class="fcard"><div class="fc-top"><h3>${esc(c.name)}</h3></div><div class="fc-body"><p>${esc(c.note)}</p></div><div class="fc-foot"><a class="reslink" href="${c.link}" target="_blank" rel="noopener">Info ↗</a></div></div>`).join("")+`</div>`;
+  }
+  document.getElementById("fundwrap").innerHTML=html||`<p class="sub">No items match this filter.</p>`;
+  document.querySelectorAll('#fundwrap input[type=checkbox]').forEach(cb=>cb.addEventListener("change",()=>{
+    const f=FUNDS.find(x=>x.idx==cb.dataset.idx); if(f) toggle(f,cb.checked);
+  }));
+}
+
+// ---- gate (same password as the tracker; a remembered device auto-unlocks) ----
+async function unlock(pin,remember,silent){
+  try{
+    const remote=await rpc("tracker_get",{pin});
+    PIN=pin; try{(remember?localStorage:sessionStorage).setItem("tk_pin",pin);}catch(e){}
+    state=remote||{}; state.fund=state.fund||{};
+    render();
+    document.getElementById("gate").hidden=true;
+    return true;
+  }catch(e){
+    if(e&&e.status===400){try{localStorage.removeItem("tk_pin");sessionStorage.removeItem("tk_pin");}catch(_){}}
+    if(!silent){ document.getElementById("pinErr").textContent=(e&&e.status===400)
+      ? "That password wasn't recognised. Check it and try again."
+      : "Couldn't reach the server to check your password. Check your connection and try again."; }
+    return false;
+  }
+}
+async function boot(){
+  if(!CLOUD){ document.getElementById("gate").hidden=true; render(); return; }
+  const go=()=>unlock(document.getElementById("pinInput").value.trim(),document.getElementById("pinRemember").checked,false);
+  document.getElementById("pinGo").addEventListener("click",go);
+  document.getElementById("pinInput").addEventListener("keydown",e=>{if(e.key==="Enter")go();});
+  let saved=null; try{ saved=sessionStorage.getItem("tk_pin")||localStorage.getItem("tk_pin"); }catch(e){}
+  if(saved && await unlock(saved,!!localStorage.getItem("tk_pin"),true)) return;
+  try{ document.getElementById("pinInput").focus(); }catch(e){}
+}
+boot();
+</script>
