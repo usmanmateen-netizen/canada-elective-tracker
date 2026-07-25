@@ -629,6 +629,7 @@ nodes.forEach(n=>{
 nodes.forEach(n=>{
   const s=n.s, x=n.x, y=n.y; s._x=x; s._y=y;
   const g=el("g",{class:"marker",transform:`translate(${x.toFixed(1)},${y.toFixed(1)})`,tabindex:"0",role:"button","aria-label":s.name});
+  el("circle",{r:R+8,fill:"transparent"},g);   // larger invisible hit target so clicks are forgiving
   el("circle",{r:R,fill:"var(--panel)",stroke:"var(--line)","stroke-width":"1"},g);
   el("circle",{r:R,fill:"none",stroke:"var(--line-soft)","stroke-width":"3"},g);
   const ring=el("circle",{r:R,fill:"none",stroke:STATUS[s.status].c,"stroke-width":"3","stroke-linecap":"round","stroke-dasharray":`0 ${CIRC}`,transform:"rotate(-90)"},g);
@@ -644,7 +645,6 @@ nodes.forEach(n=>{
     const wrap=document.getElementById("mapwrap").getBoundingClientRect();
     showTip(s, ev.clientX-wrap.left, ev.clientY-wrap.top);
   });
-  g.addEventListener("mouseenter",()=>{ if(!drag) mapview.appendChild(g); });   // hovered bubble comes to the front
   g.addEventListener("mouseleave",()=>tip.style.opacity=0);
   g.addEventListener("focus",()=>{const r=svg.getBoundingClientRect();showTip(s,(x/W)*r.width,(y/H)*r.height);});
   g.addEventListener("blur",()=>tip.style.opacity=0);
