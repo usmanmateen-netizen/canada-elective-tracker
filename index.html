@@ -536,8 +536,10 @@ document.addEventListener("visibilitychange",()=>{if(document.visibilityState===
 function ping(page){
   if(!(CLOUD&&PIN))return;
   try{const k="tk_ping_"+page,last=+(localStorage.getItem(k)||0);
-    if(Date.now()-last<600000)return; localStorage.setItem(k,String(Date.now()));}catch(e){}
-  try{rpc("visit_ping",{pin:PIN,p_page:page,p_agent:(navigator&&navigator.userAgent)||""}).catch(()=>{});}catch(e){}}
+    if(Date.now()-last<600000)return;
+    rpc("visit_ping",{pin:PIN,p_page:page,p_agent:(navigator&&navigator.userAgent)||""})
+      .then(()=>{try{localStorage.setItem(k,String(Date.now()));}catch(e){}}).catch(()=>{});
+  }catch(e){}}
 async function unlock(pin,remember,silent){
   try{
     const remote=await rpc("tracker_get",{pin});

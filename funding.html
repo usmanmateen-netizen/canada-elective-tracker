@@ -283,8 +283,9 @@ async function unlock(pin,remember,silent){
     PIN=pin; try{(remember?localStorage:sessionStorage).setItem("tk_pin",pin);}catch(e){}
     // record the visit (throttled to one per 10 min per device)
     try{const k="tk_ping_funding",last=+(localStorage.getItem(k)||0);
-      if(Date.now()-last>=600000){localStorage.setItem(k,String(Date.now()));
-        rpc("visit_ping",{pin,p_page:"funding",p_agent:(navigator&&navigator.userAgent)||""}).catch(()=>{});}}catch(e){}
+      if(Date.now()-last>=600000){
+        rpc("visit_ping",{pin,p_page:"funding",p_agent:(navigator&&navigator.userAgent)||""})
+          .then(()=>{try{localStorage.setItem(k,String(Date.now()));}catch(e){}}).catch(()=>{});}}catch(e){}
     state=remote||{}; state.fund=state.fund||{};
     render();
     document.getElementById("gate").hidden=true;
