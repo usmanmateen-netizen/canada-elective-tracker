@@ -87,3 +87,45 @@ revoke all on function public.profile_get(text) from public;
 revoke all on function public.profile_set(text, jsonb) from public;
 grant execute on function public.profile_get(text) to anon;
 grant execute on function public.profile_set(text, jsonb) to anon;
+
+-- ============================================================
+-- Visit log: one row per successful sign-in, so we can see whether
+-- the site is actually being opened (progress edits alone don't show visits).
+-- Stores time + which page + browser string. No personal data beyond that.
+-- ============================================================
+create table if not exists public.visit_log (
+  id bigserial primary key,
+  at timestamptz not null default now(),
+  page text,
+  agent text
+);
+alter table public.visit_log enable row level security;
+
+create or replace function public.visit_ping(pin text, p_page text default null, p_agent text default null)
+returns void language plpgsql security definer
+set search_path = public, extensions as $$
+begin
+  if (select pin_hash from public.elective_tracker where id = 1) <> encode(digest(pin, 'sha256'), 'hex')
+    then raise exception 'invalid pin'; end if;
+  insert into public.visit_log (page, agent) values (left(p_page, 40), left(p_agent, 300));
+  -- keep only the most recent 500 rows
+  delete from public.visit_log
+   where id <= (select max(id) - 500 from public.visit_log);
+end $$;
+
+create or replace function public.visit_list(pin text)
+returns jsonb language plpgsql security definer
+set search_path = public, extensions as $$
+declare out_data jsonb;
+begin
+  if (select pin_hash from public.elective_tracker where id = 1) <> encode(digest(pin, 'sha256'), 'hex')
+    then raise exception 'invalid pin'; end if;
+  select coalesce(jsonb_agg(t order by t.at desc), '[]'::jsonb) into out_data
+    from (select at, page, agent from public.visit_log order by at desc limit 200) t;
+  return out_data;
+end $$;
+
+revoke all on function public.visit_ping(text, text, text) from public;
+revoke all on function public.visit_list(text) from public;
+grant execute on function public.visit_ping(text, text, text) to anon;
+grant execute on function public.visit_list(text) to anon;

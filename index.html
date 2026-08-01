@@ -531,10 +531,17 @@ async function pushState(){if(!(CLOUD&&PIN))return;try{await rpc("tracker_set",{
 function flush(){if(!(CLOUD&&PIN))return;try{fetch(CFG.url.replace(/\/$/,"")+"/rest/v1/rpc/tracker_set",{method:"POST",keepalive:true,headers:{apikey:CFG.anonKey,Authorization:"Bearer "+CFG.anonKey,"Content-Type":"application/json"},body:JSON.stringify({pin:PIN,new_data:state})});}catch(e){}}
 window.addEventListener("pagehide",flush);
 document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="hidden")flush();});
+// Records that the site was opened (progress edits alone don't show visits).
+// Throttled to one record per 10 minutes per device, so refreshes don't inflate it.
+function ping(page){
+  if(!(CLOUD&&PIN))return;
+  try{const k="tk_ping_"+page,last=+(localStorage.getItem(k)||0);
+    if(Date.now()-last<600000)return; localStorage.setItem(k,String(Date.now()));}catch(e){}
+  try{rpc("visit_ping",{pin:PIN,p_page:page,p_agent:(navigator&&navigator.userAgent)||""}).catch(()=>{});}catch(e){}}
 async function unlock(pin,remember,silent){
   try{
     const remote=await rpc("tracker_get",{pin});
-    PIN=pin;
+    PIN=pin; ping("tracker");
     try{(remember?localStorage:sessionStorage).setItem("tk_pin",pin);}catch(e){}
     const rv=(remote&&remote._v)||0, lv=state._v||0, remoteHas=remote&&Object.keys(remote).length;
     if(remoteHas&&rv>=lv){

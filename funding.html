@@ -281,6 +281,10 @@ async function unlock(pin,remember,silent){
   try{
     const remote=await rpc("tracker_get",{pin});
     PIN=pin; try{(remember?localStorage:sessionStorage).setItem("tk_pin",pin);}catch(e){}
+    // record the visit (throttled to one per 10 min per device)
+    try{const k="tk_ping_funding",last=+(localStorage.getItem(k)||0);
+      if(Date.now()-last>=600000){localStorage.setItem(k,String(Date.now()));
+        rpc("visit_ping",{pin,p_page:"funding",p_agent:(navigator&&navigator.userAgent)||""}).catch(()=>{});}}catch(e){}
     state=remote||{}; state.fund=state.fund||{};
     render();
     document.getElementById("gate").hidden=true;
